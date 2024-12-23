@@ -39,9 +39,9 @@ def capture_naver():
         driver.get('https://www.naver.com')
         time.sleep(2)  # 페이지 로딩 대기
         
-        # 스크린샷 저장
-        driver.save_screenshot('naver_capture.png')
-        print("스크린샷이 저장되었습니다: naver_capture.png")
+        # 스크린샷을 capture 폴더에 저장
+        driver.save_screenshot('capture/naver_capture.png')
+        print("스크린샷이 저장되었습니다: capture/naver_capture.png")
         
     finally:
         driver.quit()
