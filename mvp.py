@@ -26,7 +26,7 @@ print(f"보유 비트코인: {my_btc} BTC")
 def capture_naver():
     # 크롬 옵션 설정
     chrome_options = Options()
-    chrome_options.add_argument('--headless')  # 백그라운드 실행시 주석 해제
+    # chrome_options.add_argument('--headless')  # 헤드리스 모드 비활성화 (주석 처리)
     
     # 크롬 드라이버 설정
     driver = webdriver.Chrome(
