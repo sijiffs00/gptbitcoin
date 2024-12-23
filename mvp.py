@@ -42,11 +42,11 @@ def capture_naver():
     )
     
     try:
-        # 네이버 접속
-        driver.get('https://www.naver.com')
-        time.sleep(2)  # 페이지 로딩 대기
+        # 업비트 BTC 차트 페이지 접속
+        driver.get('https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC')
+        time.sleep(5)  # 차트 로딩을 위해 대기 시간 증가
         
-        # 새로운 파일명으로 스크린샷 저장
+        # 스크린샷 저장
         driver.save_screenshot(filename)
         print(f"스크린샷이 저장되었습니다: {filename}")
         
