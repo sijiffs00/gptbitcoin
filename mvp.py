@@ -46,6 +46,14 @@ def capture_naver():
         driver.get('https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC')
         time.sleep(5)  # 차트 로딩을 위해 대기 시간 증가
         
+        # 제공받은 xpath로 지표 버튼 찾기
+        indicator_xpath = '//*[@id="fullChartiq"]/div/div/div[1]/div/div/cq-menu[3]/span'
+        print("지표 버튼을 찾는 중...")
+        indicator_button = driver.find_element('xpath', indicator_xpath)
+        print("지표 버튼 클릭")
+        indicator_button.click()
+        time.sleep(2)  # 지표 메뉴가 나타날 때까지 대기
+        
         # 스크린샷 저장
         driver.save_screenshot(filename)
         print(f"스크린샷이 저장되었습니다: {filename}")
