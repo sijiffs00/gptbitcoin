@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from datetime import datetime
 
 load_dotenv()
 
@@ -24,9 +25,15 @@ print(f"보유 비트코인: {my_btc} BTC")
 
 # 2. 셀레니움 설정 및 네이버 스크린샷
 def capture_naver():
-    # 크롬 옵션 설정
+    if not os.path.exists('capture'):
+        os.makedirs('capture')
+    
+    # 현재 날짜와 시간으로 파일명 생성
+    current_time = datetime.now().strftime('%y%m%d_%H%M')
+    filename = f'capture/{current_time}.png'
+    
     chrome_options = Options()
-    # chrome_options.add_argument('--headless')  # 헤드리스 모드 비활성화 (주석 처리)
+    # chrome_options.add_argument('--headless')
     
     # 크롬 드라이버 설정
     driver = webdriver.Chrome(
@@ -39,9 +46,9 @@ def capture_naver():
         driver.get('https://www.naver.com')
         time.sleep(2)  # 페이지 로딩 대기
         
-        # 스크린샷을 capture 폴더에 저장
-        driver.save_screenshot('capture/naver_capture.png')
-        print("스크린샷이 저장되었습니다: capture/naver_capture.png")
+        # 새로운 파일명으로 스크린샷 저장
+        driver.save_screenshot(filename)
+        print(f"스크린샷이 저장되었습니다: {filename}")
         
     finally:
         driver.quit()
