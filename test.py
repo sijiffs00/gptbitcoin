@@ -1,18 +1,40 @@
 import os
 from dotenv import load_dotenv
+
+# 0. env 파일 로드
 load_dotenv()
 
-print(os.getenv("UPBIT_ACCESS_KEY"))
-print(os.getenv("UPBIT_SECRET_KEY"))
-print(os.getenv("OPENAI_API_KEY"))
+# 1. 업비트 차트 데이터 가져오기 (30일 일봉)
+import pyupbit
+df = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
+# print(df.to_json())
+print(os.getenv('UPBIT_SECRET_KEY'))  
+print(os.getenv('OPENAI_API_KEY'))  
 
+# 2. AI에게 데이터 제공하고 판단 받기
 
-# 너는 비트코인 투자 전문가야.
-# 제공된 차트 데이터를 기반으로 현재 buy, sell, hold 중 어떤 선택을 해야할지 알려줘
-# JSON 형식으로 대답해
+# from openai import OpenAI
+# client = OpenAI()
 
-# You are an expert in Bitcoin investing. Tell me whether to buy, sell, or hold at the moment based on the chart data provided.
-# JSON 형식으로 대답해
-# Response Example : {"decision": "buy", "reason": "some technical reason"}
-
-
+# response = client.chat.completions.create(
+#   model="gpt-4",
+#   messages=[
+#     {
+#       "role": "system",
+#       "content": [
+#         {
+#           "type": "text",
+#           "text": "You are an expert in Bitcoin investing.\nTell me whether to buy, sell, or hold at the moment based on the chart data provided.\nresponse in json format.\n\n    Response Example :\n    {\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n    {\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n    {\"decision\": \"buy\", \"reason\": \"some technical reason\"}"
+#         }
+#       ]
+#     }
+#   ],
+#   response_format={
+#     "type": "json_object"
+#   },
+#   temperature=1,
+#   max_completion_tokens=2048,
+#   top_p=1,
+#   frequency_penalty=0,
+#   presence_penalty=0
+# )
