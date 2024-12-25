@@ -48,9 +48,9 @@ response = client.chat.completions.create(
   response_format={
     "type": "json_object"
   },
-  temperature=1,
-  max_completion_tokens=2048,
-  top_p=1,
-  frequency_penalty=0,
-  presence_penalty=0
 )
+
+# API 응답 확인을 위한 출력 추가
+
+print("\n응답 내용 확인:")
+print(response.choices[0].message.content)
