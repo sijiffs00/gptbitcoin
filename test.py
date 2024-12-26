@@ -52,5 +52,10 @@ response = client.chat.completions.create(
 
 # API 응답 확인을 위한 출력 추가
 
-print("\n응답 내용 확인:")
-print(response.choices[0].message.content)
+
+result = response.choices[0].message.content
+
+# 3. AI의 판단에 따라 실제로 자동매매 진행하기
+import json
+result = json.loads(result)
+print(f"\n응답 내용 확인:\n{result}") 
