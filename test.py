@@ -59,3 +59,11 @@ result = response.choices[0].message.content
 import json
 result = json.loads(result)
 print(f"\n응답 내용 확인:\n{result}") 
+
+if result["decision"] == "buy":
+    print("사라")
+elif result["decision"] == "sell":
+    print("팔아라")
+elif result["decision"] == "hold":   
+    print("홀드홀드")
+
