@@ -10,7 +10,16 @@ df = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
 # print(df.to_json())
 
 
-# 2. AI에게 데이터 제공하고 판단 받기
+# 2. 업비트 잔고조회
+access = os.environ['UPBIT_ACCESS_KEY']
+secret = os.environ['UPBIT_SECRET_KEY']
+upbit = pyupbit.Upbit(access, secret)
+print(f"\n💰:") 
+print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
+print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
+
+
+# 3. AI에게 데이터 제공하고 판단 받기
 from openai import OpenAI
 client = OpenAI()
 
@@ -55,15 +64,17 @@ response = client.chat.completions.create(
 
 result = response.choices[0].message.content
 
-# 3. AI의 판단에 따라 실제로 자동매매 진행하기
+# 4. AI의 판단에 따라 실제로 자동매매 진행하기
 import json
 result = json.loads(result)
-print(f"\n응답 내용 확인:\n{result}") 
+print(f"\n🤖:") 
+print(f"응답 내용 확인:\n{result}") 
 
 if result["decision"] == "buy":
-    print("사라")
+    print("🖖🏻사라")
+    print(upbit.buy_market_order("KRW-BTC", upbit.get_balance("KRW")))
 elif result["decision"] == "sell":
-    print("팔아라")
+    print("👆🏼팔아라")
 elif result["decision"] == "hold":   
-    print("홀드홀드")
+    print("🖐🏻홀드홀드")
 
