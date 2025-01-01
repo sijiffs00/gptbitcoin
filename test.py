@@ -99,3 +99,4 @@ while True :
    time.sleep(5)
    ai_trading()
 
+# 푸시테스트
