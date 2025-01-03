@@ -1,24 +1,62 @@
 import os
+import json
+import time
+import pyupbit
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # 0. env 파일 로드
 load_dotenv()
 
 def ai_trading():
-  # 1. 업비트 차트 데이터 가져오기 (30일 일봉)
-  import pyupbit
-  df = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
-  # print(df.to_json())
+  # 1. 업비트 차트 데이터 가져오기
+  df_daily = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")  # 30일 일봉
+  df_hourly = pyupbit.get_ohlcv("KRW-BTC", count=24, interval="hour") # 24시간 시간봉
+  
+  # 호가 데이터 (오더북) 가져오기
+  orderbook = pyupbit.get_orderbook("KRW-BTC")
+  bids = orderbook['orderbook_units'][:5]  # 매수 호가 상위 5개
+  asks = orderbook['orderbook_units'][:5]  # 매도 호가 상위 5개
 
-
-  # 2. 업비트 잔고조회
+  # 2. 업비트 잔고조회 및 투자 상태 출력
   access = os.environ['UPBIT_ACCESS_KEY']
   secret = os.environ['UPBIT_SECRET_KEY']
   upbit = pyupbit.Upbit(access, secret)
-  print(f"\n💰:") 
-  print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
-  print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
+  
+  # 현재가 조회
+  current_price = pyupbit.get_current_price("KRW-BTC")
+  
+  print("\n📊 시장 현황:")
+  print(f"현재가: {current_price:,} KRW")
+  
+  print("\n📗 매도 호가:")
+  for ask in asks[::-1]:  # 역순으로 출력
+      print(f"가격: {ask['ask_price']:,} KRW | 수량: {ask['ask_size']:.4f} BTC")
+      
+  print("\n📕 매수 호가:")
+  for bid in bids:
+      print(f"가격: {bid['bid_price']:,} KRW | 수량: {bid['bid_size']:.4f} BTC")
 
+  print(f"\n💰 내 자산:")
+  krw_balance = upbit.get_balance("KRW")
+  btc_balance = upbit.get_balance("KRW-BTC")
+  btc_value = btc_balance * current_price if btc_balance else 0
+  
+  print(f"보유 현금: {krw_balance:,.0f} KRW")
+  print(f"보유 비트코인: {btc_balance:.8f} BTC")
+  print(f"비트코인 평가금액: {btc_value:,.0f} KRW")
+  print(f"총 평가금액: {(krw_balance + btc_value):,.0f} KRW")
+
+  # 3. AI에게 전달할 데이터 구성
+  market_data = {
+      "daily_chart": df_daily.to_dict(orient='records'),
+      "hourly_chart": df_hourly.to_dict(orient='records'),
+      "orderbook": orderbook,
+      "current_price": current_price
+  }
+
+  # market_data를 JSON 문자열로 변환
+  market_data_str = json.dumps(market_data, default=str)
 
   # 3. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
@@ -32,7 +70,7 @@ def ai_trading():
         "content": [
           {
             "type": "text",
-            "text": "You are an expert in Bitcoin investing.\nTell me whether to buy, sell, or hold at the moment based on the chart data provided.\nresponse in json format.\n\nResponse Example :\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},"
+            "text": "You are an expert in Bitcoin investing.\nAnalyze all market data including daily chart, hourly chart, orderbook, and current price.\nTell me whether to buy, sell, or hold at the moment.\nResponse in json format.\n\nResponse Example:\n{\"decision\": \"buy|sell|hold\", \"reason\": \"detailed analysis based on all provided data\"}"
           }
         ]
       },
@@ -41,16 +79,7 @@ def ai_trading():
         "content": [
           {
             "type": "text",
-            "text": df.to_json()
-          }
-        ]
-      },
-      {
-        "role": "assistant",
-        "content": [
-          {
-            "type": "text",
-            "text": "{\"decision\": \"hold\", \"reason\": \"Bitcoin prices have shown some volatility but appear to be stabilizing. After a peak, there was a slight decline, and the volume of trading is decreasing. This might indicate consolidation before another move. With no major sell-off or breakout signals, holding is advisable.\"}"
+            "text": market_data_str
           }
         ]
       }
@@ -65,7 +94,6 @@ def ai_trading():
   result = response.choices[0].message.content
 
   # 4. AI의 판단에 따라 실제로 자동매매 진행하기
-  import json
   result = json.loads(result)
   print(f"\n🤖:") 
   print(f"응답 내용 확인:\n     decision: {result["decision"]}")
@@ -93,9 +121,8 @@ def ai_trading():
 
 
 
-while True :
-   import time
-   time.sleep(5)
-   ai_trading()
+while True:
+    ai_trading()
+    time.sleep(5)
 
 # 푸시테스트
