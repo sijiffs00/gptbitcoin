@@ -60,9 +60,8 @@ def ai_trading():
     },
   )
 
+
   # API 응답 확인을 위한 출력 추가
-
-
   result = response.choices[0].message.content
 
   # 4. AI의 판단에 따라 실제로 자동매매 진행하기

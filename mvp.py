@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 from datetime import datetime
+from selenium.webdriver.common.by import By
 
 load_dotenv()
 
@@ -23,8 +24,8 @@ print(f"보유 현금: {my_balance:,.0f}원")
 my_btc = upbit.get_balance("KRW-BTC")
 print(f"보유 비트코인: {my_btc} BTC")
 
-# 2. 셀레니움 설정 및 네이버 스크린샷
-def capture_naver():
+# 2. 셀레니움 설정 및 스크린샷 촬영
+def capture_shot():
     if not os.path.exists('capture'):
         os.makedirs('capture')
     
@@ -44,23 +45,14 @@ def capture_naver():
     try:
         # 업비트 BTC 차트 페이지 접속
         driver.get('https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC')
-        time.sleep(5)  # 차트 로딩을 위해 대기 시간 증가
+        time.sleep(5)  # 차트 로딩을 위해 대기
         
         # 지표 버튼 클릭
-        indicator_xpath = '//*[@id="fullChartiq"]/div/div/div[1]/div/div/cq-menu[3]/span'
         print("지표 버튼을 찾는 중...")
-        indicator_button = driver.find_element('xpath', indicator_xpath)
+        indicator_button = driver.find_element(By.CLASS_NAME, 'ciq-menu-section')
         print("지표 버튼 클릭")
         indicator_button.click()
-        time.sleep(2)  # 지표 메뉴가 나타날 때까지 대기
-        
-        # 볼린저 밴드 버튼 클릭
-        bollinger_xpath = '//*[@id="fullChartiq"]/div/div/div[1]/div/div/cq-menu[3]/cq-menu-dropdown/cq-scroll/cq-studies/cq-studies-content/cq-item[15]'
-        print("볼린저 밴드 버튼을 찾는 중...")
-        bollinger_button = driver.find_element('xpath', bollinger_xpath)
-        print("볼린저 밴드 버튼 클릭")
-        bollinger_button.click()
-        time.sleep(2)  # 볼린저 밴드가 차트에 그려질 때까지 대기
+        time.sleep(2)  # 메뉴가 나타날 때까지 대기
         
         # 스크린샷 저장
         driver.save_screenshot(filename)
@@ -70,4 +62,4 @@ def capture_naver():
         driver.quit()
 
 # 스크린샷 함수 실행
-capture_naver()
+capture_shot()
