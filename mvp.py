@@ -47,17 +47,21 @@ def capture_shot():
         driver.get('https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC')
         time.sleep(5)
         
+        # 지표 버튼 클릭
         print("지표 버튼을 찾는 중...")
-        # 방법 1: cq-menu의 순서를 이용한 CSS_SELECTOR 사용
         indicator_button = driver.find_element(By.CSS_SELECTOR, 'cq-menu:nth-child(3) span')
-        
-        # 방법 2: 텍스트 내용으로 찾기
-        # indicator_button = driver.find_element(By.XPATH, "//span[contains(text(), '지표')]")
-        
         print("지표 버튼 클릭")
         indicator_button.click()
-        time.sleep(2)
+        time.sleep(2)  # 메뉴가 나타날 때까지 대기
         
+        # 볼린저 밴드 버튼 클릭
+        print("볼린저 밴드 버튼을 찾는 중...")
+        bollinger_button = driver.find_element(By.CSS_SELECTOR, 'cq-menu:nth-child(3) cq-menu-dropdown cq-item:nth-child(15)')
+        print("볼린저 밴드 버튼 클릭")
+        bollinger_button.click()
+        time.sleep(2)  # 지표가 적용될 때까지 대기
+        
+        # 스크린샷 저장
         driver.save_screenshot(filename)
         print(f"스크린샷이 저장되었습니다: {filename}")
         
