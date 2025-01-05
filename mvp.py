@@ -1,72 +1,103 @@
+# 최소 MVP 모델
+# pyupbit 라이브러리에서 30일 일봉데이터를 받아와서 
+# gpt API에 태워서 보내서 투자판단을 받고있음.
+
 import os
 from dotenv import load_dotenv
-import pyupbit
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-import time
-from datetime import datetime
-from selenium.webdriver.common.by import By
 
+# 0. env 파일 로드
 load_dotenv()
 
-# 1. 업비트 객체 생성
-access = os.environ.get('UPBIT_ACCESS_KEY')
-secret = os.environ.get('UPBIT_SECRET_KEY')
-upbit = pyupbit.Upbit(access, secret)
+def ai_trading():
+  # 1. 업비트 차트 데이터 가져오기 (30일 일봉)
+  import pyupbit
+  df = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
+  # print(df.to_json()) # 30일 간의 일봉데이터 프린트
 
-# 2. 보유 현금 조회
-my_balance = upbit.get_balance("KRW")
-print(f"보유 현금: {my_balance:,.0f}원")
 
-# 3. 보유 비트코인 조회
-my_btc = upbit.get_balance("KRW-BTC")
-print(f"보유 비트코인: {my_btc} BTC")
+  # 2. 업비트 잔고조회
+  access = os.environ['UPBIT_ACCESS_KEY']
+  secret = os.environ['UPBIT_SECRET_KEY']
+  upbit = pyupbit.Upbit(access, secret)
+  print(f"\n💰:") 
+  print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
+  print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
 
-# 2. 셀레니움 설정 및 스크린샷 촬영
-def capture_shot():
-    if not os.path.exists('capture'):
-        os.makedirs('capture')
-    
-    # 현재 날짜와 시간으로 파일명 생성
-    current_time = datetime.now().strftime('%y%m%d_%H%M')
-    filename = f'capture/{current_time}.png'
-    
-    chrome_options = Options()
-    # chrome_options.add_argument('--headless')
-    
-    # 크롬 드라이버 설정
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=chrome_options
-    )
-    
-    try:
-        # 업비트 BTC 차트 페이지 접속
-        driver.get('https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC')
-        time.sleep(5)
-        
-        # 지표 버튼 클릭
-        print("지표 버튼을 찾는 중...")
-        indicator_button = driver.find_element(By.CSS_SELECTOR, 'cq-menu:nth-child(3) span')
-        print("지표 버튼 클릭")
-        indicator_button.click()
-        time.sleep(2)  # 메뉴가 나타날 때까지 대기
-        
-        # 볼린저 밴드 버튼 클릭
-        print("볼린저 밴드 버튼을 찾는 중...")
-        bollinger_button = driver.find_element(By.CSS_SELECTOR, 'cq-menu:nth-child(3) cq-menu-dropdown cq-item:nth-child(15)')
-        print("볼린저 밴드 버튼 클릭")
-        bollinger_button.click()
-        time.sleep(2)  # 지표가 적용될 때까지 대기
-        
-        # 스크린샷 저장
-        driver.save_screenshot(filename)
-        print(f"스크린샷이 저장되었습니다: {filename}")
-        
-    finally:
-        driver.quit()
 
-# 스크린샷 함수 실행
-capture_shot()
+  # 3. AI에게 데이터 제공하고 판단 받기
+  from openai import OpenAI
+  client = OpenAI()
+  response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+      {
+        "role": "system",
+        "content": [
+          {
+            "type": "text",
+            "text": "You are an expert in Bitcoin investing.\nTell me whether to buy, sell, or hold at the moment based on the chart data provided.\nresponse in json format.\n\nResponse Example :\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"},"
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": df.to_json()
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"decision\": \"hold\", \"reason\": \"Bitcoin prices have shown some volatility but appear to be stabilizing. After a peak, there was a slight decline, and the volume of trading is decreasing. This might indicate consolidation before another move. With no major sell-off or breakout signals, holding is advisable.\"}"
+          }
+        ]
+      }
+    ],
+    response_format={
+      "type": "json_object"
+    },
+  )
+  # API 응답 확인을 위한 출력 추가
+  result = response.choices[0].message.content
+
+
+  # 4. AI의 판단에 따라 실제로 자동매매 진행하기
+  import json
+  result = json.loads(result)
+  print(f"\n🤖:") 
+  print(f"응답 내용 확인:\n     decision: {result["decision"]}")
+  print(f"     reason: {result["reason"]}") 
+  if result["decision"] == "buy":
+      print("🖖🏻사라")
+      # my_krw = upbit.get_balance("KRW")
+
+      # # 살때는 수수료제외하고 5000원이상이여야 살 수 있음.
+      # if my_krw*0.9995 > 5000:
+      #     print(upbit.buy_market_order("KRW-BTC", my_krw*0.9995))
+
+  elif result["decision"] == "sell":
+      print("👆🏼팔아라")
+
+      # my_btc = upbit.get_balance("KRW-BTC")
+      # current_price = pyupbit.get_orderbook(ticker="KRW-BTC")['orderbook_units'][0]["ask_price"]
+      
+      # # 코인을 팔때는 체결금액에서 수수료제외하고 한화로 입금되니까 수수료 계산할필요X
+      # if my_btc*current_price > 5000:
+      #   print(upbit.sell_market_order("KRW-BTC", upbit.get_balance("KRW-BTC")))
+      
+  elif result["decision"] == "hold":   
+      print("🖐🏻홀드홀드")
+
+
+# while True :
+#    import time
+#    time.sleep(30)
+
+ai_trading()
+
+
