@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 import pyupbit
+import requests
+from datetime import datetime
 
 # 0. env 파일 로드
 load_dotenv()
@@ -22,8 +24,8 @@ def ai_trading():
   print(f"\n📒 오더북 (호가데이터):")
   
   # BTC-KRW 마켓에 대한 주요 정보만 출력
-  print(f"매도 총량: {orderbook['total_ask_size']:.8f} BTC")
-  print(f"매수 총량: {orderbook['total_bid_size']:.8f} BTC")
+  print(f"매도 총량: {orderbook['total_ask_size']:.8f} BTC") # 매도주문의 총 비트코인 수량
+  print(f"매수 총량: {orderbook['total_bid_size']:.8f} BTC") # 매수 주문의 총 비트코인 수량
   
   print("\n호가 정보:")
   for unit in orderbook['orderbook_units'][:5]:  # 상위 5개 호가만 출력. 15개가 최대임.
@@ -35,17 +37,49 @@ def ai_trading():
   # 3. 차트 데이터 조회
   # 30일 일봉 데이터
   df_daily = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
-  print(f"\n 💗30일 일봉데이터:") 
+  print(f"\n 💗 30일 일봉데이터:") 
   print(df_daily.to_json())
   
   # 24시간 시간봉 데이터
   df_hourly = pyupbit.get_ohlcv("KRW-BTC", interval="minute60", count=24)
-  print(f"\n 💖24시간 시간봉데이터:") 
+  print(f"\n 💖 24시간 시간봉데이터:") 
   print(df_hourly.to_json())
 
+  # 4. 공포&탐욕지수 API요청 후 조회
+  def get_fear_greed_data():
+      url = "https://api.alternative.me/fng/?limit=2"
+      
+      try:
+          response = requests.get(url)
+          data = response.json()
+          
+          print("\n 🔥 공포&탐욕 지수")
+          print("-" * 50)
+          
+          for item in data['data']:
+              date = datetime.fromtimestamp(int(item['timestamp']))
+              formatted_date = date.strftime("%Y-%m-%d")
+              
+              print(f"날짜: {formatted_date}")
+              print(f"지수: {item['value']}")
+              print(f"상태: {item['value_classification']}")
+              
+              if 'time_until_update' in item:
+                  update_in_hours = int(item['time_until_update']) // 3600
+                  print(f"다음 업데이트까지: 약 {update_in_hours}시간")
+              
+              print("-" * 50)
+              
+      except Exception as e:
+          print(f"데이터를 가져오는 중 오류가 발생했습니다: {e}")
+          return None
+
+  # 함수 호출
+  get_fear_greed_data()
 
 
-#   # 3. AI에게 데이터 제공하고 판단 받기
+
+#   # 5. AI에게 데이터 제공하고 판단 받기
 #   from openai import OpenAI
 #   client = OpenAI()
 #   response = client.chat.completions.create(
