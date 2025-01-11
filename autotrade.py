@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 import pyupbit
 import requests
 from datetime import datetime
+from ta.momentum import RSIIndicator
+from ta.trend import MACD, SMAIndicator
+from ta.volatility import BollingerBands
 
 # 0. env 파일 로드
 load_dotenv()
@@ -45,7 +48,43 @@ def ai_trading():
   print(f"\n 💖 24시간 시간봉데이터:") 
   print(df_hourly.to_json())
 
-  # 4. 공포&탐욕지수 API요청 후 조회
+  # 4. Ta 라이브러리를 활용한 기술적 분석
+  
+  # 4-1) 일봉 데이터에 대한 기술적 지표 계산
+  print("\n📊 일봉 기술적 지표:")
+  # RSI (상대강도지수)
+  df_daily['rsi'] = RSIIndicator(df_daily['close']).rsi()
+  # MACD
+  macd = MACD(df_daily['close'])
+  df_daily['macd'] = macd.macd()
+  df_daily['macd_signal'] = macd.macd_signal()
+  # 볼린저 밴드
+  bollinger = BollingerBands(df_daily['close'])
+  df_daily['bb_high'] = bollinger.bollinger_hband()
+  df_daily['bb_low'] = bollinger.bollinger_lband()
+  # 이동평균선
+  df_daily['sma_20'] = SMAIndicator(df_daily['close'], window=20).sma_indicator()
+  
+  print(df_daily[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
+  
+  # 4-2) 시간봉 데이터에 대한 기술적 지표 계산
+  print("\n⏰ 시간봉 기술적 지표:")
+  # RSI
+  df_hourly['rsi'] = RSIIndicator(df_hourly['close']).rsi()
+  # MACD
+  macd = MACD(df_hourly['close'])
+  df_hourly['macd'] = macd.macd()
+  df_hourly['macd_signal'] = macd.macd_signal()
+  # 볼린저 밴드
+  bollinger = BollingerBands(df_hourly['close'])
+  df_hourly['bb_high'] = bollinger.bollinger_hband()
+  df_hourly['bb_low'] = bollinger.bollinger_lband()
+  # 이동평균선
+  df_hourly['sma_20'] = SMAIndicator(df_hourly['close'], window=20).sma_indicator()
+  
+  print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
+
+  # 5. 공포&탐욕지수 API요청 후 조회
   def get_fear_greed_data():
       url = "https://api.alternative.me/fng/?limit=2"
       
@@ -79,7 +118,7 @@ def ai_trading():
 
 
 
-#   # 5. AI에게 데이터 제공하고 판단 받기
+#   # 6. AI에게 데이터 제공하고 판단 받기
 #   from openai import OpenAI
 #   client = OpenAI()
 #   response = client.chat.completions.create(
