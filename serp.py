@@ -1,3 +1,5 @@
+# 뉴스기사 수집을 위해 SerpApi 사용해서 Google News 실시간검색내용을 API 요청으로 받을 수 있음.
+
 import os
 import requests
 from typing import Dict, List
