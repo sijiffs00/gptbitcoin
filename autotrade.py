@@ -7,6 +7,11 @@ from ta.momentum import RSIIndicator
 from ta.trend import MACD, SMAIndicator
 from ta.volatility import BollingerBands
 import base64  # base64 인코딩을 위해 추가
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 
 # 0. env 파일 로드
 load_dotenv()
@@ -129,9 +134,43 @@ def ai_trading():
   # 함수 호출
   get_fear_greed_data()
 
+  # 6. 차트 이미지 캡처하기
+  def capture_chart():
+      print("\n📸 차트 캡처 시작...")
+      
+      # Chrome 옵션 설정
+      chrome_options = Options()
+      chrome_options.add_argument('--headless')  # 브라우저 창 안보이게
+      chrome_options.add_argument('--no-sandbox')
+      chrome_options.add_argument('--disable-dev-shm-usage')
+      
+      try:
+          # 크롬 드라이버 설정
+          driver = webdriver.Chrome(
+              service=Service(ChromeDriverManager().install()),
+              options=chrome_options
+          )
+          
+          # 차트 페이지 열기
+          driver.get('https://upbit.com/exchange?code=CRIX.UPBIT.KRW-BTC')
+          time.sleep(5)  # 차트 로딩 대기
+          
+          # 차트 영역 캡처
+          driver.save_screenshot('chart/my_img.png')
+          print("차트 캡처 완료!")
+          
+          driver.quit()
+          return True
+          
+      except Exception as e:
+          print(f"차트 캡처 중 오류 발생: {e}")
+          return False
+      
+  # 차트 캡처 실행
+  os.makedirs('chart', exist_ok=True)  # chart 폴더 생성
+  capture_success = capture_chart()
 
-
-  # 6. AI에게 데이터 제공하고 판단 받기
+  # 7. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
   client = OpenAI()
 
