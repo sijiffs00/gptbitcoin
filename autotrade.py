@@ -228,15 +228,20 @@ def ai_trading():
   # API 응답 확인을 위한 출력 추가
   result = response.choices[0].message.content
 
-  # 이미지 파일 삭제
-  if base64_image:  # 이미지가 있었을 때만 삭제 시도
+  # 이미지 파일 이름 변경 (삭제하지 않고)
+  if base64_image:  # 이미지가 있었을 때만 시도
       try:
-          os.remove('chart/my_img.png')
-          print("🗑️ 차트 이미지 파일 삭제 완료!")
+          # 현재 시간을 원하는 형식으로 포맷팅 (예: 2501181428)
+          current_time = datetime.now().strftime("%d%H%M%S")
+          new_filename = f'chart/my_img{current_time}.png'
+          
+          # 파일 이름 변경
+          os.rename('chart/my_img.png', new_filename)
+          print(f"📸 차트 이미지 파일명 변경 완료: {new_filename}")
       except FileNotFoundError:
-          print("❌ 이미 삭제된 파일이야")
+          print("❌ 이미지 파일을 찾을 수 없어")
       except Exception as e:
-          print(f"파일 삭제 중 오류 발생: {e}")
+          print(f"파일명 변경 중 오류 발생: {e}")
 
   # 4. AI의 판단에 따라 실제로 자동매매 진행하기
   import json
