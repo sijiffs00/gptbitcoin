@@ -141,40 +141,19 @@ def ai_trading():
       # Chrome 옵션 설정
       chrome_options = Options()
       # chrome_options.add_argument('--headless')  # 브라우저 창을 볼 수 있도록 headless 모드 비활성화
-      chrome_options.add_argument('--no-sandbox')
-      chrome_options.add_argument('--disable-dev-shm-usage')
-      chrome_options.add_argument('--window-size=1920,1080')
+      chrome_options.add_argument('--window-size=1920,1080')  # 화면 크기 설정
       
       try:
-          # 크롬 드라이버 설정
-          driver = webdriver.Chrome(
-              service=Service(ChromeDriverManager().install()),
-              options=chrome_options
-          )
+          # Chrome 드라이버 설정
+          service = Service()
+          driver = webdriver.Chrome(service=service, options=chrome_options)
           
-          # 차트 페이지 열기
-          driver.get('https://upbit.com/exchange?code=CRIX.UPBIT.KRW-BTC')
-          time.sleep(5)  # 차트 로딩 대기
+          # 업비트 차트 페이지 접속 (전체화면 차트 URL 사용)
+          url = "https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC"
+          driver.get(url)
           
-          # 브라우저 창 크기 설정
-          driver.set_window_size(1920, 1080)
-          
-          # 특정 버튼 찾아서 클릭
-          from selenium.webdriver.common.by import By
-          from selenium.webdriver.support.ui import WebDriverWait
-          from selenium.webdriver.support import expected_conditions as EC
-          
-          # 버튼이 클릭 가능할 때까지 대기 (최대 10초)
-          button = WebDriverWait(driver, 10).until(
-              EC.element_to_be_clickable((By.XPATH, 
-                  '/html/body/div[1]/div[2]/div[3]/div/section[1]/article[1]/div/span[2]/div/div/div[1]/cq-toggle[1]/span'))
-          )
-          print("🖱️ 버튼 찾음! 클릭 시도...")
-          button.click()
-          print("✨ 버튼 클릭 완료!")
-          
-          # 버튼 클릭 후 화면 변화 대기
-          time.sleep(3)  # 화면 변화 대기
+          # 페이지 로딩 대기
+          time.sleep(5)  # 5초 대기
           
           # 스크린샷 캡처
           driver.save_screenshot('chart/my_img.png')
