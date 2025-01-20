@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+from trade.fear_and_greed import get_fear_greed_data
 
 # 0. env 파일 로드
 load_dotenv()
@@ -103,35 +104,7 @@ def ai_trading():
   print("\n⏰ 시간봉 기술적 지표:")
   print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
 
-  # 5. 공포&탐욕지수 API요청 후 조회
-  def get_fear_greed_data():
-      url = "https://api.alternative.me/fng/?limit=2"
-      
-      try:
-          response = requests.get(url)
-          data = response.json()
-          
-          # print("\n 🔥 공포&탐욕 지수")
-          
-          for item in data['data']:
-              date = datetime.fromtimestamp(int(item['timestamp']))
-              formatted_date = date.strftime("%Y-%m-%d")
-              
-              # print(f"날짜: {formatted_date}")
-              # print(f"지수: {item['value']}")
-              # print(f"상태: {item['value_classification']}")
-              
-              if 'time_until_update' in item:
-                  update_in_hours = int(item['time_until_update']) // 3600
-                  # print(f"다음 업데이트까지: 약 {update_in_hours}시간")
-              
-              # print("-" * 50)
-              
-      except Exception as e:
-          print(f"데이터를 가져오는 중 오류가 발생했습니다: {e}")
-          return None
-
-  # 함수 호출
+  # [5]. 공포&탐욕지수 API요청 후 조회
   get_fear_greed_data()
 
   # 6. 차트 이미지 캡처하기
