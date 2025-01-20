@@ -245,7 +245,7 @@ def ai_trading():
       except Exception as e:
           print(f"파일명 변경 중 오류 발생: {e}")
 
-  # 4. AI의 판단에 따라 실제로 자동매매 진행하기
+  # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
   import json
   from trade.buy_sell_hold import buy_sell_hold
   
