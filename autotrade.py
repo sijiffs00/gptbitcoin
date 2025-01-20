@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 from trade.fear_and_greed import get_fear_greed_data
+from trade.img_capture import capture_chart, encode_image_to_base64
 
 # 0. env 파일 로드
 load_dotenv()
@@ -107,52 +108,14 @@ def ai_trading():
   # [5]. 공포&탐욕지수 API요청 후 조회
   fear_greed_data = get_fear_greed_data()  # 데이터 받아오기
 
-  # 6. 차트 이미지 캡처하기
-  def capture_chart():
-      print("\n📸 차트 캡처 시작...")
-      
-      # Chrome 옵션 설정
-      chrome_options = Options()
-      # chrome_options.add_argument('--headless')  # 브라우저 창을 볼 수 있도록 headless 모드 비활성화
-      chrome_options.add_argument('--window-size=1920,1080')  # 화면 크기 설정
-      
-      try:
-          # Chrome 드라이버 설정
-          service = Service()
-          driver = webdriver.Chrome(service=service, options=chrome_options)
-          
-          # 업비트 차트 페이지 접속 (전체화면 차트 URL 사용)
-          url = "https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC"
-          driver.get(url)
-          
-          # 페이지 로딩 대기
-          time.sleep(5)  # 5초 대기
-          
-          # 스크린샷 캡처
-          driver.save_screenshot('chart/my_img.png')
-          print("📸 차트 캡처 완료!")
-          
-          driver.quit()
-          return True
-          
-      except Exception as e:
-          print(f"차트 캡처 중 오류 발생: {e}")
-          if 'driver' in locals():
-              driver.quit()
-          return False
-      
-  # 차트 캡처 실행
-  os.makedirs('chart', exist_ok=True)  # chart 폴더 생성
-  capture_success = capture_chart()
+  # [6]. 차트 이미지 캡처하기
+  from trade.img_capture import capture_chart, encode_image_to_base64
+  os.makedirs('chart', exist_ok=True) 
+  capture_success = capture_chart() # 캡쳐된 이미지는 'chart'폴더안에 저장됨.
 
   # 7. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
   client = OpenAI()
-
-  # 이미지를 base64로 인코딩하는 함수
-  def encode_image_to_base64(image_path):
-      with open(image_path, 'rb') as image_file:
-          return base64.b64encode(image_file.read()).decode('utf-8')
 
   # 이미지 인코딩
   try:
