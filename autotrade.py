@@ -6,7 +6,7 @@ from datetime import datetime
 from ta.momentum import RSIIndicator
 from ta.trend import MACD, SMAIndicator
 from ta.volatility import BollingerBands
-import base64  # base64 인코딩을 위해 추가
+import base64 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -23,9 +23,9 @@ def ai_trading():
   access = os.environ['UPBIT_ACCESS_KEY']
   secret = os.environ['UPBIT_SECRET_KEY']
   upbit = pyupbit.Upbit(access, secret)
-  # print(f"\n💰:") 
-  # print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
-  # print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
+  print(f"\n💰:") 
+  print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
+  print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
 
 
   # 2. 오더북(호가 데이터) 조회
@@ -93,15 +93,15 @@ def ai_trading():
 #   print(f"\n 💖 24시간 시간봉데이터:") 
 #   print(df_hourly.to_json())
 
+
   # 4. Ta 라이브러리를 활용한 기술적 분석
-  
   # 4-1) 일봉 데이터에 대한 기술적 지표 계산
-#   print("\n📊 일봉 기술적 지표:")
-#   print(df_daily[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
+  print("\n📊 일봉 기술적 지표:")
+  print(df_daily[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
   
   # 4-2) 시간봉 데이터에 대한 기술적 지표 계산
-#   print("\n⏰ 시간봉 기술적 지표:")
-#   print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
+  print("\n⏰ 시간봉 기술적 지표:")
+  print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
 
   # 5. 공포&탐욕지수 API요청 후 조회
   def get_fear_greed_data():
@@ -197,7 +197,7 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": "You are an expert in Bitcoin investing.\nTell me whether to buy, sell, or hold at the moment based on the chart data and image provided.\nresponse in json format.\n\nResponse Example :\n{\"decision\": \"buy\", \"reason\": \"some technical reason\"}"
+                  "text": "You are an expert in Bitcoin investing. Analyze the following technical indicators:\n- RSI (oversold < 30, overbought > 70)\n- MACD and MACD Signal crossovers\n- Bollinger Bands position\n- SMA 20 trend\nProvide buy/sell/hold decision based on both daily and hourly data.\nResponse in json format: {\"decision\": \"buy\", \"reason\": \"technical analysis reason\"}"
               }
           ]
       },
@@ -206,7 +206,7 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": df_daily.to_json()
+                  "text": f"Daily Data: {df_daily.to_json()}\nHourly Data: {df_hourly.to_json()}"
               }
           ]
       }
