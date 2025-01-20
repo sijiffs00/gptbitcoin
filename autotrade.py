@@ -105,7 +105,7 @@ def ai_trading():
   print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
 
   # [5]. 공포&탐욕지수 API요청 후 조회
-  get_fear_greed_data()
+  fear_greed_data = get_fear_greed_data()  # 데이터 받아오기
 
   # 6. 차트 이미지 캡처하기
   def capture_chart():
@@ -170,7 +170,17 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": "You are an expert in Bitcoin investing. Analyze the following technical indicators:\n- RSI (oversold < 30, overbought > 70)\n- MACD and MACD Signal crossovers\n- Bollinger Bands position\n- SMA 20 trend\nProvide buy/sell/hold decision based on both daily and hourly data.\nResponse in json format: {\"decision\": \"buy\", \"reason\": \"technical analysis reason\"}"
+                  "text": "You are an expert in Bitcoin investing. Analyze the following data:\n"
+                         "1. Technical indicators:\n"
+                         "- RSI (oversold < 30, overbought > 70)\n"
+                         "- MACD and MACD Signal crossovers\n"
+                         "- Bollinger Bands position\n"
+                         "- SMA 20 trend\n"
+                         "2. Fear and Greed Index:\n"
+                         "- Current market sentiment\n"
+                         "- Recent trend in sentiment\n\n"
+                         "Provide buy/sell/hold decision based on both technical and sentiment analysis.\n"
+                         "Response in json format: {\"decision\": \"buy\", \"reason\": \"technical and sentiment analysis reason\"}"
               }
           ]
       },
@@ -179,7 +189,9 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": f"Daily Data: {df_daily.to_json()}\nHourly Data: {df_hourly.to_json()}"
+                  "text": f"Daily Data: {df_daily.to_json()}\n"
+                         f"Hourly Data: {df_hourly.to_json()}\n"
+                         f"Fear and Greed Data: {fear_greed_data}"
               }
           ]
       }
