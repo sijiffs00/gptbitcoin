@@ -15,6 +15,7 @@ import time
 from trade.fear_and_greed import get_fear_greed_data
 from trade.img_capture import capture_chart, encode_image_to_base64
 import json
+from trade.orderbook_data import get_orderbook_data
 
 # 0. env 파일 로드
 load_dotenv()
@@ -31,31 +32,8 @@ def ai_trading():
   print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
 
 
-  # [2]. 오더북(호가 데이터) 조회
-  orderbook = pyupbit.get_orderbook("KRW-BTC")
-  orderbook_summary = {
-      "total_ask": orderbook['total_ask_size'],
-      "total_bid": orderbook['total_bid_size'],
-      "ask_bid_ratio": orderbook['total_ask_size'] / orderbook['total_bid_size'],
-      "top5_orders": [{
-          "ask_price": unit['ask_price'],
-          "ask_size": unit['ask_size'],
-          "bid_price": unit['bid_price'],
-          "bid_size": unit['bid_size']
-      } for unit in orderbook['orderbook_units'][:5]]
-  }
-  print(f"\n📒 : 오더북 (호가데이터):")
-  
-  # BTC-KRW 마켓에 대한 주요 정보만 출력
-  print(f"매도 총량: {orderbook['total_ask_size']:.8f} BTC")
-  print(f"매수 총량: {orderbook['total_bid_size']:.8f} BTC")
-  
-  print("\n호가 정보:")
-  for unit in orderbook['orderbook_units'][:5]:
-      print(f"매도: {unit['ask_price']:,} KRW ({unit['ask_size']:.8f} BTC)")
-      print(f"매수: {unit['bid_price']:,} KRW ({unit['bid_size']:.8f} BTC)")
-      print("-" * 50)
-      pass
+  # [2]. 📒 오더북(호가 데이터) 조회
+  orderbook_summary = get_orderbook_data()
 
 
   # 3. 차트 데이터 조회
@@ -211,6 +189,7 @@ def ai_trading():
           print(f"파일명 변경 중 오류 발생: {e}")
 
   # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
+  import json
   from trade.buy_sell_hold import buy_sell_hold
   
   result = json.loads(result)
