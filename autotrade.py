@@ -12,10 +12,12 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+import json
 from trade.fear_and_greed import get_fear_greed_data
 from trade.img_capture import capture_chart, encode_image_to_base64
-import json
 from trade.orderbook_data import get_orderbook_data
+from trade.tec_analysis import calculate_indicators, analyze_market_data
+import pandas as pd
 
 # 0. env 파일 로드
 load_dotenv()
@@ -39,61 +41,16 @@ def ai_trading():
   # 3. 차트 데이터 조회
   # 30일 일봉 데이터
   df_daily = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
+  # 기술적 지표 계산
+  df_daily = calculate_indicators(df_daily, is_daily=True)
   
-  # RSI 계산
-  rsi = RSIIndicator(df_daily['close'], window=14)
-  df_daily['rsi'] = rsi.rsi()
-  
-  # MACD 계산
-  macd = MACD(df_daily['close'])
-  df_daily['macd'] = macd.macd()
-  df_daily['macd_signal'] = macd.macd_signal()
-  
-  # 볼린저 밴드 계산
-  bollinger = BollingerBands(df_daily['close'])
-  df_daily['bb_high'] = bollinger.bollinger_hband()
-  df_daily['bb_low'] = bollinger.bollinger_lband()
-  
-  # 20일 이동평균선
-  sma = SMAIndicator(df_daily['close'], window=20)
-  df_daily['sma_20'] = sma.sma_indicator()
-  
-  # print(f"\n 💗 30일 일봉데이터:") 
-  # print(df_daily.to_json())
-  
-  # 24시간 시간봉 데이터도 같은 방식으로 지표 계산
+  # 24시간 시간봉 데이터
   df_hourly = pyupbit.get_ohlcv("KRW-BTC", interval="minute60", count=24)
-  
-  # RSI 계산
-  rsi = RSIIndicator(df_hourly['close'], window=14)
-  df_hourly['rsi'] = rsi.rsi()
-  
-  # MACD 계산
-  macd = MACD(df_hourly['close'])
-  df_hourly['macd'] = macd.macd()
-  df_hourly['macd_signal'] = macd.macd_signal()
-  
-  # 볼린저 밴드 계산
-  bollinger = BollingerBands(df_hourly['close'])
-  df_hourly['bb_high'] = bollinger.bollinger_hband()
-  df_hourly['bb_low'] = bollinger.bollinger_lband()
-  
-  # 20시간 이동평균선
-  sma = SMAIndicator(df_hourly['close'], window=20)
-  df_hourly['sma_20'] = sma.sma_indicator()
+  # 기술적 지표 계산
+  df_hourly = calculate_indicators(df_hourly, is_daily=False)
+  # GPT-4o에 보낼 때:
+  daily_analysis, hourly_analysis = analyze_market_data(df_daily, df_hourly)
 
-#   print(f"\n 💖 24시간 시간봉데이터:") 
-#   print(df_hourly.to_json())
-
-
-  # 4. Ta 라이브러리를 활용한 기술적 분석
-  # 4-1) 일봉 데이터에 대한 기술적 지표 계산
-  print("\n📊 일봉 기술적 지표:")
-  print(df_daily[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
-  
-  # 4-2) 시간봉 데이터에 대한 기술적 지표 계산
-  print("\n⏰ 시간봉 기술적 지표:")
-  print(df_hourly[['close', 'rsi', 'macd', 'macd_signal', 'bb_high', 'bb_low', 'sma_20']].tail().to_string())
 
   # [5]. 공포&탐욕지수 API요청 후 조회
   fear_greed_data = get_fear_greed_data()  # 데이터 받아오기
@@ -116,7 +73,8 @@ def ai_trading():
       print("차트 이미지를 찾을 수 없어 :(")
       base64_image = None
 
-  # API 요청 메시지 준비
+
+
   messages = [
       {
           "role": "system",
@@ -146,8 +104,8 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": f"Daily Data: {df_daily.to_json()}\n"
-                         f"Hourly Data: {df_hourly.to_json()}\n"
+                  "text": f"Daily Analysis: {json.dumps(daily_analysis, indent=2)}\n"
+                         f"Hourly Analysis: {json.dumps(hourly_analysis, indent=2)}\n"
                          f"Fear and Greed Data: {fear_greed_data}\n"
                          f"Orderbook Data: {json.dumps(orderbook_summary)}"
               }
@@ -189,7 +147,6 @@ def ai_trading():
           print(f"파일명 변경 중 오류 발생: {e}")
 
   # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
-  import json
   from trade.buy_sell_hold import buy_sell_hold
   
   result = json.loads(result)
