@@ -40,16 +40,19 @@ def ai_trading():
 
   # 3. 차트 데이터 조회
   # 30일 일봉 데이터
-  df_daily = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
-  # 기술적 지표 계산
-  df_daily = calculate_indicators(df_daily, is_daily=True)
+  df_daily_30 = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
+  df_daily_30 = calculate_indicators(df_daily_30, is_daily=True)
+  
+  # 60일 일봉 데이터
+  df_daily_60 = pyupbit.get_ohlcv("KRW-BTC", count=60, interval="day")
+  df_daily_60 = calculate_indicators(df_daily_60, is_daily=True)
   
   # 24시간 시간봉 데이터
   df_hourly = pyupbit.get_ohlcv("KRW-BTC", interval="minute60", count=24)
-  # 기술적 지표 계산
   df_hourly = calculate_indicators(df_hourly, is_daily=False)
+
   # GPT-4o에 보낼 때:
-  daily_analysis, hourly_analysis = analyze_market_data(df_daily, df_hourly)
+  daily_30_analysis, daily_60_analysis, hourly_analysis = analyze_market_data(df_daily_30, df_daily_60, df_hourly)
 
 
   # [5]. 공포&탐욕지수 API요청 후 조회
@@ -97,7 +100,8 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": f"Daily Analysis: {json.dumps(daily_analysis, indent=2)}\n"
+                  "text": f"30 Days Analysis: {json.dumps(daily_30_analysis, indent=2)}\n"
+                         f"60 Days Analysis: {json.dumps(daily_60_analysis, indent=2)}\n"
                          f"Hourly Analysis: {json.dumps(hourly_analysis, indent=2)}\n"
                          f"Fear and Greed Data: {fear_greed_data}\n"
                          f"Orderbook Data: {json.dumps(orderbook_summary)}"
