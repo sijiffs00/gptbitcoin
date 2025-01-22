@@ -82,14 +82,13 @@ def ai_trading():
               {
                   "type": "text",
                   "text": "You are an expert in Bitcoin investing. Analyze the provided data and respond with a trading decision.\n\n"
-                         "You must respond in this exact JSON format:\n"
+                         "You must respond ONLY with this exact JSON format:\n"
                          "{\n"
-                         "  \"decision\": \"[buy/sell/hold]\",\n"
-                         "  \"reason\": \"[detailed analysis reason]\"\n"
+                         "  \"decision\": \"buy\" or \"sell\" or \"hold\",\n"
+                         "  \"reason\": \"detailed analysis reason\"\n"
                          "}\n\n"
-                         "Where:\n"
-                         "- decision must be exactly 'buy', 'sell', or 'hold'\n"
-                         "- reason should explain your analysis"
+                         "The decision field MUST be exactly one of: 'buy', 'sell', or 'hold'.\n"
+                         "No other format or additional fields are allowed."
               }
           ]
       },
@@ -121,28 +120,32 @@ def ai_trading():
       model="gpt-4o",
       messages=messages,
       response_format={
-          "type": "json_object",
-          "schema": {
-              "type": "object",
-              "properties": {
-                  "decision": {
-                      "type": "string",
-                      "enum": ["buy", "sell", "hold"],
-                      "description": "Trading decision"
-                  },
-                  "reason": {
-                      "type": "string",
-                      "description": "Detailed analysis reason"
-                  }
-              },
-              "required": ["decision", "reason"]
-          }
+          "type": "json_object"
       },
       temperature=0.7,
       max_tokens=500
   )
   # API 응답 확인을 위한 출력 추가
   result = response.choices[0].message.content
+  
+  # 응답 테스트
+  try:
+      result = json.loads(result)
+      print(f"\n🔍 응답 타입: {type(result)}")  # dict 타입인지만 확인
+      
+      # decision 값이 허용된 값인지 확인
+      if result['decision'] not in ['buy', 'sell', 'hold']:
+          raise ValueError(f"Invalid decision value: {result['decision']}")
+          
+  except json.JSONDecodeError:
+      print("❌ JSON 파싱 실패!")
+      raise
+  except KeyError as e:
+      print(f"❌ 필수 필드 누락: {e}")
+      raise
+  except Exception as e:
+      print(f"❌ 기타 오류 발생: {e}")
+      raise
 
   # 이미지 파일 이름 변경 (삭제하지 않고)
   if base64_image:  # 이미지가 있었을 때만 시도
@@ -161,8 +164,6 @@ def ai_trading():
 
   # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
   from trade.buy_sell_hold import buy_sell_hold
-  
-  result = json.loads(result)
   buy_sell_hold(result, upbit)
 
 
