@@ -81,21 +81,15 @@ def ai_trading():
           "content": [
               {
                   "type": "text",
-                  "text": "You are an expert in Bitcoin investing. Analyze the following data:\n"
-                         "1. Technical indicators:\n"
-                         "- RSI (oversold < 30, overbought > 70)\n"
-                         "- MACD and MACD Signal crossovers\n"
-                         "- Bollinger Bands position\n"
-                         "- SMA 20 trend\n"
-                         "2. Fear and Greed Index:\n"
-                         "- Current market sentiment\n"
-                         "- Recent trend in sentiment\n"
-                         "3. Orderbook data (market depth):\n"
-                         "- Ask/Bid ratio analysis\n"
-                         "- Price levels with significant volume\n"
-                         "- Market pressure analysis\n\n"
-                         "Provide buy/sell/hold decision based on both technical and sentiment analysis.\n"
-                         "Response in json format: {\"decision\": \"buy\", \"reason\": \"technical and sentiment analysis reason\"}"
+                  "text": "You are an expert in Bitcoin investing. Analyze the provided data and respond with a trading decision.\n\n"
+                         "You must respond in this exact JSON format:\n"
+                         "{\n"
+                         "  \"decision\": \"[buy/sell/hold]\",\n"
+                         "  \"reason\": \"[detailed analysis reason]\"\n"
+                         "}\n\n"
+                         "Where:\n"
+                         "- decision must be exactly 'buy', 'sell', or 'hold'\n"
+                         "- reason should explain your analysis"
               }
           ]
       },
@@ -126,7 +120,26 @@ def ai_trading():
   response = client.chat.completions.create(
       model="gpt-4o",
       messages=messages,
-      response_format={"type": "json_object"},
+      response_format={
+          "type": "json_object",
+          "schema": {
+              "type": "object",
+              "properties": {
+                  "decision": {
+                      "type": "string",
+                      "enum": ["buy", "sell", "hold"],
+                      "description": "Trading decision"
+                  },
+                  "reason": {
+                      "type": "string",
+                      "description": "Detailed analysis reason"
+                  }
+              },
+              "required": ["decision", "reason"]
+          }
+      },
+      temperature=0.7,
+      max_tokens=500
   )
   # API 응답 확인을 위한 출력 추가
   result = response.choices[0].message.content
