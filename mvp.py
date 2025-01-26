@@ -26,7 +26,9 @@ def ai_trading():
 
   # 3. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
-  client = OpenAI()
+  client = OpenAI(
+    api_key=os.environ['OPENAI_API_KEY']  # 여기를 수정! .env 파일의 키를 명시적으로 사용
+  )
   response = client.chat.completions.create(
     model="gpt-4o",
     messages=[
