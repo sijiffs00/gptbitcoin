@@ -60,8 +60,16 @@ def ai_trading():
 
   # [6]. 차트 이미지 캡처하기
   from trade.img_capture import capture_chart, encode_image_to_base64
-  os.makedirs('chart', exist_ok=True) 
-  capture_success = capture_chart() # 캡쳐된 이미지는 'chart'폴더안에 저장됨.
+  
+  # Chrome 옵션 설정 추가
+  chrome_options = Options()
+  chrome_options.add_argument('--headless')  # 헤드리스 모드 설정
+  chrome_options.add_argument('--no-sandbox')
+  chrome_options.add_argument('--disable-dev-shm-usage')
+  chrome_options.add_argument('--disable-gpu')
+  
+  os.makedirs('chart', exist_ok=True)
+  capture_success = capture_chart(chrome_options)  # chrome_options 전달
 
   # 7. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
