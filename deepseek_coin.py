@@ -29,6 +29,28 @@ def chat_with_deepseek(prompt):
     except Exception as e:
         return f"오류가 발생했습니다: {str(e)}"
 
+def summarize_youtube_transcript(transcript_text):
+    """
+    유튜브 자막 내용을 DeepSeek API를 사용하여 요약하는 함수
+    """
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that summarizes Korean YouTube video transcripts. Please provide a concise summary in Korean."
+                },
+                {
+                    "role": "user",
+                    "content": f"다음은 유튜브 영상의 자막 내용이야. 여기에서 언급되는 '워뇨띠'의 투자원칙을 요약해서 리스트업해.:\n\n{transcript_text}"
+                }
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"요약 중 오류가 발생했습니다: {str(e)}"
+
 # 사용 예시
 if __name__ == "__main__":
     prompt = "안녕 넌 누구야?"
