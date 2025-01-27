@@ -3,8 +3,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 import time
 import base64
+from webdriver_manager.chrome import ChromeDriverManager
 
-def capture_chart():
+def capture_chart(chrome_options):
     """
     Selenium을 사용하여 업비트의 비트코인 차트를 캡처하는 함수
     
@@ -13,28 +14,23 @@ def capture_chart():
     """
     print("\n📸 차트 캡처 시작...")
     
-    # Chrome 옵션 설정
-    chrome_options = Options()
-    # chrome_options.add_argument('--headless')  # 브라우저 창을 볼 수 있도록 headless 모드 비활성화
-    chrome_options.add_argument('--window-size=1920,1080')  # 화면 크기 설정
-    
     try:
         # Chrome 드라이버 설정
-        service = Service()
+        service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
-        # 업비트 차트 페이지 접속 (전체화면 차트 URL 사용)
-        url = "https://upbit.com/full_chart?code=CRIX.UPBIT.KRW-BTC"
-        driver.get(url)
+        # 트레이딩뷰 차트 페이지로 이동
+        driver.get('https://www.tradingview.com/chart/?symbol=UPBIT%3ABTCKRW')
         
         # 페이지 로딩 대기
-        time.sleep(5)  # 5초 대기
+        time.sleep(10)
         
-        # 스크린샷 캡처
+        # 스크린샷 찍기
         driver.save_screenshot('chart/my_img.png')
-        print("📸 차트 캡처 완료!")
         
+        # 브라우저 종료
         driver.quit()
+        print("📸 차트 캡처 완료!")
         return True
         
     except Exception as e:
