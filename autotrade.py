@@ -140,6 +140,12 @@ def ai_trading():
   # API 응답 확인을 위한 출력 추가
   result = response.choices[0].message.content
   
+  # 토큰 사용량 출력
+  print("\n🎯 토큰 사용량:")
+  print(f"프롬프트 토큰: {response.usage.prompt_tokens}개")
+  print(f"응답 토큰: {response.usage.completion_tokens}개")
+  print(f"전체 토큰: {response.usage.total_tokens}개")
+  
   # 응답 테스트
   try:
       result = json.loads(result)
