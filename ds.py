@@ -2,9 +2,13 @@ import os
 from openai import OpenAI
 import json
 import pyupbit
+from dotenv import load_dotenv
 from trade.tec_analysis import calculate_indicators, analyze_market_data
 from trade.fear_and_greed import get_fear_greed_data
 from trade.orderbook_data import get_orderbook_data
+
+# .env 파일 로드
+load_dotenv()
 
 # DeepSeek API 클라이언트 설정하기
 client = OpenAI(
