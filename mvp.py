@@ -18,6 +18,7 @@ from trade.img_capture import capture_chart, encode_image_to_base64
 from trade.orderbook_data import get_orderbook_data
 from trade.tec_analysis import calculate_indicators, analyze_market_data
 import pandas as pd
+from ds import get_deepseek_decision
 
 # 0. env 파일 로드
 load_dotenv()
@@ -183,6 +184,22 @@ def ai_trading():
   # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
   from trade.buy_sell_hold import buy_sell_hold
   buy_sell_hold(result, upbit)
+
+  # DeepSeek-R1으로 투자 판단 요청
+  result = get_deepseek_decision(
+      daily_30_analysis,
+      daily_60_analysis,
+      hourly_analysis,
+      fear_greed_data,
+      orderbook_summary,
+      base64_image
+  )
+
+  # 결과 확인
+  if result:
+      print(f"\n🤖 DeepSeek의 판단:")
+      print(f"결정: {result['decision']}")
+      print(f"이유: {result['reason']}")
 
 
 # while True :
