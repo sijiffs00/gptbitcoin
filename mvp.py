@@ -19,6 +19,7 @@ from trade.orderbook_data import get_orderbook_data
 from trade.tec_analysis import calculate_indicators, analyze_market_data
 import pandas as pd
 from ds import get_deepseek_decision
+import boto3
 
 # 0. env 파일 로드
 load_dotenv()
@@ -71,6 +72,24 @@ def ai_trading():
   
   os.makedirs('chart', exist_ok=True)
   capture_success = capture_chart(chrome_options)  # chrome_options 전달
+
+  # S3에 이미지 업로드
+  if capture_success:
+      try:
+          s3 = boto3.client('s3')
+          current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+          file_name = f'chart/my_img.png'
+          s3_key = f'bitcoin_charts/{current_time}.png'
+          
+          # S3에 업로드
+          s3.upload_file(
+              file_name,  # 로컬 파일 경로
+              'aibitcoin-chart-img',  # 실제 생성된 S3 버킷 이름
+              s3_key  # S3에 저장될 경로/파일명
+          )
+          print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
+      except Exception as e:
+          print(f"❌ S3 업로드 중 오류 발생: {str(e)}")
 
   # 7. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
@@ -184,22 +203,6 @@ def ai_trading():
   # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
   from trade.buy_sell_hold import buy_sell_hold
   buy_sell_hold(result, upbit)
-
-  # DeepSeek-R1으로 투자 판단 요청
-  result = get_deepseek_decision(
-      daily_30_analysis,
-      daily_60_analysis,
-      hourly_analysis,
-      fear_greed_data,
-      orderbook_summary,
-      base64_image
-  )
-
-  # 결과 확인
-  if result:
-      print(f"\n🤖 DeepSeek의 판단:")
-      print(f"결정: {result['decision']}")
-      print(f"이유: {result['reason']}")
 
 
 # while True :
