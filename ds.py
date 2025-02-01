@@ -51,10 +51,18 @@ def get_deepseek_decision(daily_30_analysis, daily_60_analysis, hourly_analysis,
             max_tokens=500
         )
         
+        # 추론 과정과 최종 답변 가져오기
+        reasoning = response.choices[0].message.reasoning_content
         result = response.choices[0].message.content
+        
         # 응답이 JSON 형식인지 확인하고 파싱
         try:
-            return json.loads(result)
+            parsed_result = json.loads(result)
+            # 추론 과정과 결과를 함께 반환
+            return {
+                "reasoning": reasoning,
+                "decision": parsed_result
+            }
         except json.JSONDecodeError:
             print(f"응답이 JSON 형식이 아닙니다: {result}")
             return None
@@ -90,6 +98,8 @@ if __name__ == "__main__":
 
     # 결과 출력
     if result:
+        print(f"\n🤔 DeepSeek의 추론 과정:")
+        print(result["reasoning"])
         print(f"\n🤖 DeepSeek의 투자 판단:")
-        print(f"결정: {result['decision']}")
-        print(f"이유: {result['reason']}")
+        print(f"결정: {result['decision']['decision']}")
+        print(f"이유: {result['decision']['reason']}")
