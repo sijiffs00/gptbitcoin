@@ -13,9 +13,7 @@ client = OpenAI(
 )
 
 def get_deepseek_decision(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_greed_data, orderbook_summary):
-    """
-    DeepSeek-R1 API를 사용하여 투자 판단을 요청하는 함수
-    """
+
     # 기본 메시지 구성
     data_content = (
         f"30 Days Analysis: {json.dumps(daily_30_analysis, indent=2)}\n"
@@ -48,23 +46,31 @@ def get_deepseek_decision(daily_30_analysis, daily_60_analysis, hourly_analysis,
             model="deepseek-reasoner",
             messages=messages,
             temperature=0.7,
-            max_tokens=500
+            max_tokens=500,
+            stream=True
         )
         
-        # 추론 과정과 최종 답변 가져오기
-        reasoning = response.choices[0].message.reasoning_content
-        result = response.choices[0].message.content
+        # 스트리밍으로 응답 받기
+        reasoning_content = ""
+        content = ""
+        
+        for chunk in response:
+            if hasattr(chunk.choices[0].delta, 'reasoning_content') and chunk.choices[0].delta.reasoning_content is not None:
+                reasoning_content += chunk.choices[0].delta.reasoning_content
+                print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
+            elif hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
+                content += chunk.choices[0].delta.content
         
         # 응답이 JSON 형식인지 확인하고 파싱
         try:
-            parsed_result = json.loads(result)
+            parsed_result = json.loads(content)
             # 추론 과정과 결과를 함께 반환
             return {
-                "reasoning": reasoning,
+                "reasoning": reasoning_content,
                 "decision": parsed_result
             }
         except json.JSONDecodeError:
-            print(f"응답이 JSON 형식이 아닙니다: {result}")
+            print(f"응답이 JSON 형식이 아닙니다: {content}")
             return None
         
     except Exception as e:
@@ -98,8 +104,8 @@ if __name__ == "__main__":
 
     # 결과 출력
     if result:
-        print(f"\n🤔 DeepSeek의 추론 과정:")
+        print(f"\n🤖 DeepSeek의 추론 과정:")
         print(result["reasoning"])
-        print(f"\n🤖 DeepSeek의 투자 판단:")
-        print(f"결정: {result['decision']['decision']}")
-        print(f"이유: {result['decision']['reason']}")
+        print(f"\n\n\n\n⭐️ DeepSeek의 투자 판단:")
+        print(f"⭐️결정: {result['decision']['decision']}")
+        print(f"⭐️이유: {result['decision']['reason']}")
