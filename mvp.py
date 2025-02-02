@@ -115,10 +115,15 @@ def ai_trading():
                   "text": "You are an expert in Bitcoin investing. Analyze the provided data and respond with a trading decision.\n\n"
                          "You must respond ONLY with this exact JSON format:\n"
                          "{\n"
+                         "  \"percentage\": number between 1 and 100,\n"
                          "  \"decision\": \"buy\" or \"sell\" or \"hold\",\n"
                          "  \"reason\": \"detailed analysis reason\"\n"
                          "}\n\n"
                          "The decision field MUST be exactly one of: 'buy', 'sell', or 'hold'.\n"
+                         "The percentage field MUST be a number between 1 and 100:\n"
+                         "- For 'buy': what percentage of available KRW to use\n"
+                         "- For 'sell': what percentage of available BTC to sell\n"
+                         "- For 'hold': should be 0\n"
                          "No other format or additional fields are allowed."
               }
           ]
