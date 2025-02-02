@@ -49,28 +49,18 @@ def get_deepseek_decision(daily_30_analysis, daily_60_analysis, hourly_analysis,
         response = client.chat.completions.create(
             model="deepseek-reasoner",
             messages=messages,
-            temperature=0.7,
-            max_tokens=500,
-            stream=True
         )
         
-        # 스트리밍으로 응답 받기
-        reasoning_content = ""
-        content = ""
-        
-        for chunk in response:
-            if hasattr(chunk.choices[0].delta, 'reasoning_content') and chunk.choices[0].delta.reasoning_content is not None:
-                reasoning_content += chunk.choices[0].delta.reasoning_content
-                print(chunk.choices[0].delta.reasoning_content, end='', flush=True)
-            elif hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content is not None:
-                content += chunk.choices[0].delta.content
+        # 일반 응답 받기
+        content = response.choices[0].message.content
+        reasoning = response.choices[0].message.reasoning_content
         
         # 응답이 JSON 형식인지 확인하고 파싱
         try:
             parsed_result = json.loads(content)
             # 추론 과정과 결과를 함께 반환
             return {
-                "reasoning": reasoning_content,
+                "reasoning": reasoning,
                 "decision": parsed_result
             }
         except json.JSONDecodeError:
