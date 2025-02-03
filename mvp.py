@@ -10,7 +10,8 @@ import json
 from trade.fear_and_greed import get_fear_greed_data
 from trade.img_capture import capture_chart, encode_image_to_base64
 from trade.orderbook_data import get_orderbook_data
-from trade.tec_analysis import calculate_indicators, analyze_market_data
+from trade.tec_analysis import calculate_indicators, analyze_market_data, get_market_data
+from trade.s3_img_upload import upload_chart_to_s3
 import pandas as pd
 from ds import get_deepseek_decision
 import boto3
@@ -34,20 +35,11 @@ def ai_trading():
   orderbook_summary = get_orderbook_data()
 
 
-  # 3. 차트 데이터 조회
-  # 30일 일봉 데이터
-  df_daily_30 = pyupbit.get_ohlcv("KRW-BTC", count=30, interval="day")
-  df_daily_30 = calculate_indicators(df_daily_30, is_daily=True)
-  
-  # 60일 일봉 데이터
-  df_daily_60 = pyupbit.get_ohlcv("KRW-BTC", count=60, interval="day")
-  df_daily_60 = calculate_indicators(df_daily_60, is_daily=True)
-  
-  # 24시간 시간봉 데이터
-  df_hourly = pyupbit.get_ohlcv("KRW-BTC", interval="minute60", count=24)
-  df_hourly = calculate_indicators(df_hourly, is_daily=False)
+  # [3]. 📈 비트코인 시장 데이터 분석
+  # 3-1. 업비트에서 30일/60일 일봉과 24시간 시간봉 데이터 가져오기 📈
+  df_daily_30, df_daily_60, df_hourly = get_market_data("KRW-BTC")
 
-  # GPT-4o에 보낼 때:
+  # 3-2. 기술적 분석: RSI, MACD, 볼린저밴드 등 계산하기 📊
   daily_30_analysis, daily_60_analysis, hourly_analysis = analyze_market_data(df_daily_30, df_daily_60, df_hourly)
 
 

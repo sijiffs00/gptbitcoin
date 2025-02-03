@@ -1,29 +1,59 @@
 import pandas as pd
+import pyupbit
 from ta.momentum import RSIIndicator
 from ta.trend import MACD, SMAIndicator
 from ta.volatility import BollingerBands
+
+def get_market_data(ticker):
+    """
+    업비트에서 시장 데이터를 가져와서 분석용 데이터프레임으로 변환
+    
+    Args:
+        ticker (str): 코인의 티커 (예: 'KRW-BTC')
+    
+    Returns:
+        tuple: (df_daily_30, df_daily_60, df_hourly) - 30일 데이터, 60일 데이터, 시간봉 데이터
+    """
+    # 일봉 데이터 가져오기 (60일치)
+    df_daily_60 = pyupbit.get_ohlcv(ticker, interval="day", count=60).copy()
+    
+    # 30일 데이터는 60일 데이터에서 추출 (명시적으로 복사본 생성)
+    df_daily_30 = df_daily_60.tail(30).copy()
+    
+    # 시간봉 데이터 가져오기 (최근 24시간)
+    df_hourly = pyupbit.get_ohlcv(ticker, interval="minute60", count=24).copy()
+    
+    # 각 데이터프레임에 기술적 지표 추가
+    df_daily_30 = calculate_indicators(df_daily_30)
+    df_daily_60 = calculate_indicators(df_daily_60)
+    df_hourly = calculate_indicators(df_hourly)
+    
+    return df_daily_30, df_daily_60, df_hourly
 
 def calculate_indicators(df, is_daily=True):
     """
     기술적 지표들을 계산하여 DataFrame에 추가
     """
+    # 입력받은 DataFrame의 복사본 생성
+    df = df.copy()
+    
     # RSI 계산
     rsi = RSIIndicator(df['close'], window=14)
-    df['rsi'] = rsi.rsi()
+    df.loc[:, 'rsi'] = rsi.rsi()
     
     # MACD 계산
     macd = MACD(df['close'])
-    df['macd'] = macd.macd()
-    df['macd_signal'] = macd.macd_signal()
+    df.loc[:, 'macd'] = macd.macd()
+    df.loc[:, 'macd_signal'] = macd.macd_signal()
     
     # 볼린저 밴드 계산
     bollinger = BollingerBands(df['close'])
-    df['bb_high'] = bollinger.bollinger_hband()
-    df['bb_low'] = bollinger.bollinger_lband()
+    df.loc[:, 'bb_high'] = bollinger.bollinger_hband()
+    df.loc[:, 'bb_low'] = bollinger.bollinger_lband()
     
     # 이동평균선
     sma = SMAIndicator(df['close'], window=20)
-    df['sma_20'] = sma.sma_indicator()
+    df.loc[:, 'sma_20'] = sma.sma_indicator()
     
     return df
 
