@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import json
 from trade.fear_and_greed import get_fear_greed_data
-from trade.img_capture import capture_chart, encode_image_to_base64
+from trade.img_capture import capture_chart, encode_image_to_base64, setup_chrome_options
 from trade.orderbook_data import get_orderbook_data
 from trade.tec_analysis import calculate_indicators, analyze_market_data, get_market_data
 from trade.s3_img_upload import upload_chart_to_s3
@@ -36,30 +36,20 @@ def ai_trading():
 
 
   # [3]. 📈 비트코인 시장 데이터 분석
-  # 3-1. 업비트에서 30일/60일 일봉과 24시간 시간봉 데이터 가져오기 📈
+     # 3-1. 업비트에서 30일/60일 일봉과 24시간 시간봉 데이터 가져오기 📈
   df_daily_30, df_daily_60, df_hourly = get_market_data("KRW-BTC")
 
-  # 3-2. 기술적 분석: RSI, MACD, 볼린저밴드 등 계산하기 📊
+     # 3-2. 기술적 분석: RSI, MACD, 볼린저밴드 등 계산하기 
   daily_30_analysis, daily_60_analysis, hourly_analysis = analyze_market_data(df_daily_30, df_daily_60, df_hourly)
 
 
-  # [5]. 공포&탐욕지수 API요청 후 조회
-  fear_greed_data = get_fear_greed_data()  # 데이터 받아오기
+  # [4]. 😱 공포&탐욕지수 API요청 후 조회
+  fear_greed_data = get_fear_greed_data() 
 
-  # [6]. 차트 이미지 캡처하기
-  from trade.img_capture import capture_chart, encode_image_to_base64
-  
-  # Chrome 옵션 설정 추가
-  chrome_options = Options()
-  chrome_options.add_argument('--headless')  # 헤드리스 모드 설정
-  chrome_options.add_argument('--no-sandbox')
-  chrome_options.add_argument('--disable-dev-shm-usage')
-  chrome_options.add_argument('--disable-gpu')
-  
-  os.makedirs('chart', exist_ok=True)
-  capture_success = capture_chart(chrome_options)  # chrome_options 전달
+  # [5]. 차트 이미지 캡처하고 S3버킷에 업로드
+  chrome_options = setup_chrome_options()
+  capture_success = capture_chart(chrome_options) 
 
-  # S3에 이미지 업로드
   if capture_success:
       success, s3_key = upload_chart_to_s3('chart/my_img.png')
       if success:

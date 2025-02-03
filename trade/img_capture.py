@@ -3,7 +3,26 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 import time
 import base64
+import os
 from webdriver_manager.chrome import ChromeDriverManager
+
+def setup_chrome_options():
+    """
+    Chrome 브라우저의 옵션을 설정하고 차트 저장 폴더를 생성하는 함수
+    
+    Returns:
+        Options: 설정된 Chrome 옵션 객체
+    """
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')  # 헤드리스 모드 설정
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument('--disable-gpu')
+    
+    # 차트 저장할 폴더 생성
+    os.makedirs('chart', exist_ok=True)
+    
+    return chrome_options
 
 def capture_chart(chrome_options):
     """
