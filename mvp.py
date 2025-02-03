@@ -1,17 +1,11 @@
 import os
 from dotenv import load_dotenv
 import pyupbit
-import requests
 from datetime import datetime
-from ta.momentum import RSIIndicator
-from ta.trend import MACD, SMAIndicator
-from ta.volatility import BollingerBands
-import base64 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import time
 import json
 from trade.fear_and_greed import get_fear_greed_data
 from trade.img_capture import capture_chart, encode_image_to_base64
@@ -20,7 +14,6 @@ from trade.tec_analysis import calculate_indicators, analyze_market_data
 import pandas as pd
 from ds import get_deepseek_decision
 import boto3
-from trade.s3_img_upload import upload_chart_to_s3
 
 # 0. env 파일 로드
 load_dotenv()
