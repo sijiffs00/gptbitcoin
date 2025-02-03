@@ -1,16 +1,6 @@
 import pyupbit
 
 def buy_sell_hold(result, upbit):
-    """
-    AI의 투자 판단(buy/sell/hold)에 따라 매매를 실행하는 함수
-    
-    Args:
-        result (dict): AI의 투자 판단 결과 {"decision": str, "reason": str}
-        upbit (pyupbit.Upbit): 업비트 API 객체
-    
-    Returns:
-        None
-    """
     print(f"\n🤖:") 
     print(f"응답 내용 확인:\n     decision: {result['decision']}")
     print(f"     percentage: {result['percentage']}%")

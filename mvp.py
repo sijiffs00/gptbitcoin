@@ -20,6 +20,7 @@ from trade.tec_analysis import calculate_indicators, analyze_market_data
 import pandas as pd
 from ds import get_deepseek_decision
 import boto3
+from trade.s3_img_upload import upload_chart_to_s3
 
 # 0. env 파일 로드
 load_dotenv()
@@ -75,21 +76,9 @@ def ai_trading():
 
   # S3에 이미지 업로드
   if capture_success:
-      try:
-          s3 = boto3.client('s3')
-          current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-          file_name = f'chart/my_img.png'
-          s3_key = f'bitcoin_charts/{current_time}.png'
-          
-          # S3에 업로드
-          s3.upload_file(
-              file_name,  # 로컬 파일 경로
-              'aibitcoin-chart-img',  # 실제 생성된 S3 버킷 이름
-              s3_key  # S3에 저장될 경로/파일명
-          )
+      success, s3_key = upload_chart_to_s3('chart/my_img.png')
+      if success:
           print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
-      except Exception as e:
-          print(f"❌ S3 업로드 중 오류 발생: {str(e)}")
 
   # 7. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
