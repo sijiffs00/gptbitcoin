@@ -22,10 +22,10 @@ while True:
             "title": "알림",                  # 알림 제목
         })
         # 응답 상태코드를 출력해서 성공/실패 여부 확인
-        print("알림 전송됨, 상태코드:", response.status_code)
+        print("알림 전송됨, 상태코드:", response.status_code, flush=True)
     except Exception as e:
         # 에러 발생 시 처리
-        print("알림 전송 중 오류 발생:", e)
+        print("알림 전송 중 오류 발생:", e, flush=True)
 
     # 60초 대기 (1분)
     time.sleep(60) 
