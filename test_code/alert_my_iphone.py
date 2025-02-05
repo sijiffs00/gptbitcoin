@@ -5,6 +5,10 @@ import os      # 환경변수를 불러오기 위한 모듈
 from dotenv import load_dotenv  # .env 파일을 불러오기 위한 모듈
 import datetime  # 현재 시간을 다루기 위한 모듈
 
+# 현재 스크립트의 절대 경로를 구하고, 로그 파일의 절대 경로 설정하기
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # test_code의 상위 디렉토리
+LOG_FILE = os.path.join(SCRIPT_DIR, 'logs', 'alert_log.log')
+
 # .env 파일 불러오기
 load_dotenv()
 
@@ -29,7 +33,7 @@ while True:
         print(log_message, flush=True)
         
         # 로그 파일에 기록하기
-        with open('logs/alert_log.log', 'a', encoding='utf-8') as f:
+        with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(log_message + '\n')
     except Exception as e:
         # 에러 발생 시 처리
@@ -38,7 +42,7 @@ while True:
         print(error_message, flush=True)
         
         # 에러도 로그 파일에 기록하기
-        with open('logs/alert_log.log', 'a', encoding='utf-8') as f:
+        with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(error_message + '\n')
 
     # 60초 대기 (1분)
