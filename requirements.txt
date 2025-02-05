@@ -4,6 +4,7 @@ pyupbit
 ta
 selenium
 youtube-transcript-api
+pandas_market_calendars
 
 # ElliottWaveAnalyzer 프로젝트에서 추가된 라이브러리
 certifi==2024.2.2
