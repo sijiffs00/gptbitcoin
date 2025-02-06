@@ -16,7 +16,7 @@ import pandas as pd
 from ds import get_deepseek_decision
 import boto3
 from trade.request_the_gpt_4o import get_ai_decision
-from send_push_msg import send_push_notification
+from trade.send_push_msg import send_push_notification
 
 # 0. env 파일 로드
 load_dotenv()
@@ -91,7 +91,7 @@ def ai_trading():
   from trade.buy_sell_hold import buy_sell_hold
   buy_sell_hold(result, upbit)
 
-  # [9]. 매매 결과를 푸시 메시지로 보내기 📱
+  # [9]. 🔔 매매 결과를 푸시 메시지로 보내기 
   send_push_notification(
       decision=result['decision'],
       percentage=result['percentage'],
