@@ -55,7 +55,7 @@ def ai_trading():
       if success:
           print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
 
-  # 7. AI에게 데이터 제공하고 판단 받기
+  # 6. AI에게 데이터 제공하고 판단 받기
   from openai import OpenAI
   client = OpenAI()
 
@@ -169,7 +169,17 @@ def ai_trading():
       except Exception as e:
           print(f"파일명 변경 중 오류 발생: {e}")
 
-  # [4]. AI의 판단에 따라 실제로 자동매매 진행하기
+  # 거래 기록 저장하기
+  from db_test import save_the_record
+  current_price = pyupbit.get_current_price("KRW-BTC")  # 현재 비트코인 가격 가져오기
+  save_the_record(
+      price=current_price,
+      decision=result['decision'],
+      percentage=result['percentage'],
+      reason=result['reason']
+  )
+
+  # [7]. AI의 판단에 따라 실제로 자동매매 진행하기
   from trade.buy_sell_hold import buy_sell_hold
   buy_sell_hold(result, upbit)
 
