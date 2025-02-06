@@ -6,8 +6,17 @@ from openai import OpenAI  # OpenAI 추가
 # ⭐️ desicion, percentage, reason 을 아이폰 푸시로 발송함.
 # ⭐️ 발송하기전에 reason 을 한국어로 번역&요약하는데 gpt-3.5-turbo가 해줌.
 def translate_with_gpt(text):
+    """
+    영어로 된 트레이딩 분석을 한국어로 번역하고 요약하는 함수
+    """
     try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # OpenAI API 키 확인
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            print("❌ OpenAI API 키가 설정되지 않았어요!")
+            return text
+
+        client = OpenAI(api_key=api_key)
         
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
@@ -18,10 +27,17 @@ def translate_with_gpt(text):
             temperature=0.7
         )
         
-        return response.choices[0].message.content
+        translated_text = response.choices[0].message.content
+        print(f"✅ 번역 완료: {translated_text}")  # 번역 결과 로깅
+        return translated_text
+
+    except ImportError:
+        print("❌ OpenAI 패키지가 설치되지 않았어요! pip install openai 를 실행해주세요.")
+        return text
     except Exception as e:
-        print(f"❌ GPT 번역 중 오류 발생: {e}")
-        return text  # 오류 발생시 원본 텍스트 반환
+        print(f"❌ GPT 번역 중 오류 발생: {str(e)}")
+        print(f"원본 텍스트로 진행합니다: {text}")
+        return text
 
 def send_push_notification(decision, percentage, reason):
     """
