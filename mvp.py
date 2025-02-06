@@ -15,6 +15,7 @@ from trade.s3_img_upload import upload_chart_to_s3
 import pandas as pd
 from ds import get_deepseek_decision
 import boto3
+from trade.request_the_gpt_4o import get_ai_decision
 
 # 0. env 파일 로드
 load_dotenv()
@@ -55,117 +56,23 @@ def ai_trading():
       if success:
           print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
 
-  # 6. AI에게 데이터 제공하고 판단 받기
-  from openai import OpenAI
-  client = OpenAI()
-
-  # 이미지 인코딩
-  try:
-      base64_image = encode_image_to_base64('chart/my_img.png')
-      print("\n📸 이미지 인코딩 성공!")
-      print(f"인코딩된 이미지 길이: {len(base64_image)} 문자")
-  except FileNotFoundError:
-      print("차트 이미지를 찾을 수 없어 :(")
-      base64_image = None
-
-
-
-  messages = [
-      {
-          "role": "system",
-          "content": [
-              {
-                  "type": "text",
-                  "text": "You are an expert in Bitcoin investing. Analyze the provided data and respond with a trading decision.\n\n"
-                         "You must respond ONLY with this exact JSON format:\n"
-                         "{\n"
-                         "  \"percentage\": number between 1 and 100,\n"
-                         "  \"decision\": \"buy\" or \"sell\" or \"hold\",\n"
-                         "  \"reason\": \"detailed analysis reason\"\n"
-                         "}\n\n"
-                         "The decision field MUST be exactly one of: 'buy', 'sell', or 'hold'.\n"
-                         "The percentage field MUST be a number between 1 and 100:\n"
-                         "- For 'buy': what percentage of available KRW to use\n"
-                         "- For 'sell': what percentage of available BTC to sell\n"
-                         "- For 'hold': should be 0\n"
-                         "No other format or additional fields are allowed."
-              }
-          ]
-      },
-      {
-          "role": "user",
-          "content": [
-              {
-                  "type": "text",
-                  "text": f"30 Days Analysis: {json.dumps(daily_30_analysis, indent=2)}\n"
-                         f"60 Days Analysis: {json.dumps(daily_60_analysis, indent=2)}\n"
-                         f"Hourly Analysis: {json.dumps(hourly_analysis, indent=2)}\n"
-                         f"Fear and Greed Data: {fear_greed_data}\n"
-                         f"Orderbook Data: {json.dumps(orderbook_summary)}"
-              }
-          ]
-      }
-  ]
-
-  # 이미지가 있으면 메시지에 추가
-  if base64_image:
-      messages[1]["content"].append({
-          "type": "image_url",
-          "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-      })
-      print("🎨 API 요청에 이미지가 포함되었어!")
-  else:
-      print("⚠️ API 요청에 이미지가 포함되지 않았어!")
-
-  response = client.chat.completions.create(
-      model="gpt-4o",
-      messages=messages,
-      response_format={
-          "type": "json_object"
-      },
-      temperature=0.7,
-      max_tokens=500
+  # [6]. AI에게 데이터 제공하고 판단 받기
+  result = get_ai_decision(
+      daily_30_analysis,
+      daily_60_analysis,
+      hourly_analysis,
+      fear_greed_data,
+      orderbook_summary,
+      'chart/my_img.png'
   )
-  # API 응답 확인을 위한 출력 추가
-  result = response.choices[0].message.content
-  
-  # 토큰 사용량 출력
-  print("\n🎯 토큰 사용량:")
-  print(f"프롬프트 토큰: {response.usage.prompt_tokens}개")
-  print(f"응답 토큰: {response.usage.completion_tokens}개")
-  print(f"전체 토큰: {response.usage.total_tokens}개")
-  
-  # 응답 테스트
-  try:
-      result = json.loads(result)
-      print(f"\n🔍 응답 타입: {type(result)}")  # dict 타입인지만 확인
-      
-      # decision 값이 허용된 값인지 확인
-      if result['decision'] not in ['buy', 'sell', 'hold']:
-          raise ValueError(f"Invalid decision value: {result['decision']}")
-          
-  except json.JSONDecodeError:
-      print("❌ JSON 파싱 실패!")
-      raise
-  except KeyError as e:
-      print(f"❌ 필수 필드 누락: {e}")
-      raise
-  except Exception as e:
-      print(f"❌ 기타 오류 발생: {e}")
-      raise
 
   # 이미지 파일 이름 변경 (삭제하지 않고)
-  if base64_image:  # 이미지가 있었을 때만 시도
+  if os.path.exists('chart/my_img.png'):  # 이미지가 있을 때만 시도
       try:
-          # 현재 시간을 원하는 형식으로 포맷팅 (예: 2501181428)
           current_time = datetime.now().strftime("%d%H%M%S")
           new_filename = f'chart/my_img{current_time}.png'
-          
-          # 파일 이름 변경
           os.rename('chart/my_img.png', new_filename)
           print(f"📸 차트 이미지 파일명 변경 완료: {new_filename}")
-      except FileNotFoundError:
-          print("❌ 이미지 파일을 찾을 수 없어")
       except Exception as e:
           print(f"파일명 변경 중 오류 발생: {e}")
 
