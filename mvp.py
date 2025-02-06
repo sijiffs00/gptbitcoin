@@ -169,8 +169,8 @@ def ai_trading():
       except Exception as e:
           print(f"파일명 변경 중 오류 발생: {e}")
 
-  # 거래 기록 저장하기
-  from db_test import save_the_record
+  # [7]. 거래 기록 SQLite 데이터베이스에 저장하기
+  from trade.save_the_records import save_the_record
   current_price = pyupbit.get_current_price("KRW-BTC")  # 현재 비트코인 가격 가져오기
   save_the_record(
       price=current_price,
@@ -179,7 +179,7 @@ def ai_trading():
       reason=result['reason']
   )
 
-  # [7]. AI의 판단에 따라 실제로 자동매매 진행하기
+  # [8]. AI의 판단에 따라 실제로 자동매매 진행하기
   from trade.buy_sell_hold import buy_sell_hold
   buy_sell_hold(result, upbit)
 
