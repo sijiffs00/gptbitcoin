@@ -66,15 +66,12 @@ def ai_trading():
             'chart/my_img.png'
         )
 
-        # 이미지 파일 이름 변경 (삭제하지 않고)
-        if os.path.exists('chart/my_img.png'):  # 이미지가 있을 때만 시도
-            try:
-                current_time = datetime.now().strftime("%d%H%M%S")
-                new_filename = f'chart/my_img{current_time}.png'
-                os.rename('chart/my_img.png', new_filename)
-                print(f"📸 차트 이미지 파일명 변경 완료: {new_filename}")
-            except Exception as e:
-                print(f"파일명 변경 중 오류 발생: {e}")
+        # 이미지 분석이 끝났으니 이제 로컬 파일 삭제
+        try:
+            os.remove('chart/my_img.png')
+            print("🗑️ 로컬 차트 이미지 삭제 완료")
+        except Exception as e:
+            print(f"로컬 이미지 파일 삭제 중 오류 발생: {e}")
 
         # [7]. 거래 기록 SQLite 데이터베이스에 저장하기
         from trade.save_the_records import save_the_record
