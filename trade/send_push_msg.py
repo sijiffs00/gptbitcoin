@@ -21,7 +21,7 @@ def translate_with_gpt(text):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역하고 간단히 요약해줘. 전문용어는 적절히 풀어서 설명해줘. 친근한 말투로 작성해줘."},
+                {"role": "system", "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역해. 반말을 사용해야해. 중학생이 이해할수있는 수준으로 쉽게 풀어서 요약해줘. 3줄로 요약해야 해."},
                 {"role": "user", "content": text}
             ],
             temperature=0.7
