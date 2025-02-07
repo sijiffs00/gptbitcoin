@@ -79,4 +79,7 @@ def list_charts():
         }), 500
 
 def run_server():
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)
+
+if __name__ == '__main__':
+    run_server()
