@@ -5,6 +5,8 @@ ta
 selenium
 youtube-transcript-api
 pandas_market_calendars
+Flask==3.0.2
+Flask-CORS==4.0.0
 
 # ElliottWaveAnalyzer 프로젝트에서 추가된 라이브러리
 certifi==2024.2.2
