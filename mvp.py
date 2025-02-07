@@ -18,67 +18,11 @@ import boto3
 from trade.request_the_gpt_4o import get_ai_decision
 from trade.send_push_msg import send_push_notification
 import threading
-from flask import Flask, jsonify
-from flask_cors import CORS
-import base64
 import time
+from flask_api_server import run_server
 
 # 0. env 파일 로드
 load_dotenv()
-
-# Flask API 서버 설정
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/api/charts/<path:filename>')
-def get_chart(filename):
-    try:
-        file_path = os.path.join('chart', filename)
-        if os.path.exists(file_path):
-            with open(file_path, 'rb') as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-                return jsonify({
-                    'success': True,
-                    'image_data': encoded_image
-                })
-        else:
-            return jsonify({
-                'success': False,
-                'error': 'Image not found'
-            }), 404
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@app.route('/api/charts')
-def list_charts():
-    try:
-        chart_files = [f for f in os.listdir('chart') if f.endswith('.png')]
-        charts_data = []
-        
-        for filename in chart_files:
-            file_path = os.path.join('chart', filename)
-            with open(file_path, 'rb') as image_file:
-                encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
-                charts_data.append({
-                    'filename': filename,
-                    'image_data': encoded_image
-                })
-                
-        return jsonify({
-            'success': True,
-            'charts': charts_data
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-def run_api_server():
-    app.run(host='0.0.0.0', port=8000)
 
 def ai_trading():
     try:
@@ -157,7 +101,7 @@ def ai_trading():
 
 if __name__ == '__main__':
     # API 서버를 별도의 스레드로 실행
-    api_thread = threading.Thread(target=run_api_server)
+    api_thread = threading.Thread(target=run_server)
     api_thread.daemon = True  # 메인 프로그램이 종료되면 API 서버도 종료
     api_thread.start()
     print("🚀 API 서버가 시작되었습니다 (포트: 8000)")
