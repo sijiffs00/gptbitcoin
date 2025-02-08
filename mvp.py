@@ -51,10 +51,15 @@ def ai_trading():
         chrome_options = setup_chrome_options()
         capture_success = capture_chart(chrome_options) 
 
+        # S3 이미지 URL 초기화
+        img_url = None
+        
         if capture_success:
             success, s3_key = upload_chart_to_s3('chart/my_img.png')
             if success:
                 print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
+                # S3 이미지 URL 생성
+                img_url = f"https://aibitcoin-chart-img.s3.amazonaws.com/{s3_key}"
 
         # [6]. AI에게 데이터 제공하고 판단 받기
         result = get_ai_decision(
@@ -80,7 +85,8 @@ def ai_trading():
             price=current_price,
             decision=result['decision'],
             percentage=result['percentage'],
-            reason=result['reason']
+            reason=result['reason'],
+            img_url=img_url  # 이미지 URL 전달
         )
 
         # [8]. AI의 판단에 따라 실제로 자동매매 진행하기
@@ -108,8 +114,8 @@ if __name__ == '__main__':
         try:
             # 트레이딩 로직 실행
             ai_trading()
-            print("\n⏰ 30분 후에 다음 분석을 시작합니다...")
-            time.sleep(1800)  # 30분 대기
+            print("\n⏰ 1분 후에 다음 분석을 시작합니다...")
+            time.sleep(60)  # 1분 대기
         except KeyboardInterrupt:
             print("\n👋 프로그램을 종료합니다...")
             break

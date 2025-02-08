@@ -13,15 +13,19 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
     """
     try:
         s3 = boto3.client('s3')
-        current_time = datetime.now().strftime("%m%d_%H%M")
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         s3_key = f'bitcoin_charts/{current_time}.png'
         
-        # S3에 업로드하기
+        # S3에 업로드하기 (Content-Type 지정)
         s3.upload_file(
             file_name,  # 로컬 파일 경로
             'aibitcoin-chart-img',  # S3 버킷 이름
-            s3_key  # S3에 저장될 경로/파일명
+            s3_key,  # S3에 저장될 경로/파일명
+            ExtraArgs={'ContentType': 'image/png'}  # Content-Type 지정
         )
+        
+        # 업로드된 파일의 public URL 생성
+        url = f"https://aibitcoin-chart-img.s3.amazonaws.com/{s3_key}"
         
         return True, s3_key
         
