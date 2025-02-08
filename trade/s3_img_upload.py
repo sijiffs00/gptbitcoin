@@ -28,9 +28,7 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
             }
         )
         
-        # 업로드된 파일의 public URL 생성
-        url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
-        
+        # 업로드된 파일의 public URL 생성 (전체 경로 반환)
         return True, s3_key
         
     except Exception as e:
