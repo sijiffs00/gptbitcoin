@@ -17,16 +17,19 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
         s3_key = f'bitcoin_charts/{current_time}.png'
         bucket_name = 'aibitcoin-chart-img'
         
-        # S3에 업로드하기 (Content-Type 지정)
+        # S3에 업로드하기 (Content-Type 지정 및 public-read ACL 추가)
         s3.upload_file(
             file_name,  # 로컬 파일 경로
             bucket_name,  # S3 버킷 이름
             s3_key,  # S3에 저장될 경로/파일명
-            ExtraArgs={'ContentType': 'image/png'}  # Content-Type 지정
+            ExtraArgs={
+                'ContentType': 'image/png',  # Content-Type 지정
+                'ACL': 'public-read'  # 파일을 공개적으로 읽을 수 있도록 설정
+            }
         )
         
-        # 업로드된 파일의 public URL 생성 (올바른 형식으로)
-        url = f"https://s3.ap-northeast-2.amazonaws.com/{bucket_name}/{s3_key}"
+        # 업로드된 파일의 public URL 생성
+        url = f"https://{bucket_name}.s3.amazonaws.com/{s3_key}"
         
         return True, s3_key
         
