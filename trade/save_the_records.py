@@ -1,5 +1,6 @@
 import sqlite3  # SQLite 데이터베이스를 사용하기 위한 모듈이야
 from datetime import datetime  # 현재 시간을 기록하기 위한 모듈이야
+import pytz  # 시간대 처리를 위한 라이브러리야
 
 def save_the_record(price, decision, percentage, reason):
     """
@@ -10,6 +11,10 @@ def save_the_record(price, decision, percentage, reason):
     reason: AI가 결정한 이유
     """
     try:
+        # 한국 시간대 설정하기
+        kst = pytz.timezone('Asia/Seoul')
+        current_time = datetime.now(kst).strftime('%Y-%m-%d %H:%M:%S')
+
         # 데이터베이스에 연결하기
         conn = sqlite3.connect('trading_history.db')  # trading_history.db 파일에 연결해
         cursor = conn.cursor()  # 데이터베이스에 명령을 내리기 위한 커서를 만들어
@@ -18,7 +23,7 @@ def save_the_record(price, decision, percentage, reason):
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS trades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 자동으로 증가하는 고유번호
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 거래 시간
+            timestamp DATETIME,  -- CURRENT_TIMESTAMP를 사용하지 않고 직접 시간을 넣을거야
             price REAL,      -- 비트코인 현재가격
             decision TEXT,   -- AI의 결정 (buy/sell/hold)
             percentage INTEGER,  -- AI가 제안한 거래 비율
@@ -26,11 +31,11 @@ def save_the_record(price, decision, percentage, reason):
         )
         ''')
 
-        # 새로운 거래 기록 저장하기
+        # 새로운 거래 기록 저장하기 (한국 시간 사용)
         cursor.execute('''
-        INSERT INTO trades (price, decision, percentage, reason)
-        VALUES (?, ?, ?, ?)
-        ''', (price, decision, percentage, reason))
+        INSERT INTO trades (timestamp, price, decision, percentage, reason)
+        VALUES (?, ?, ?, ?, ?)
+        ''', (current_time, price, decision, percentage, reason))
 
         # 변경사항 저장하기
         conn.commit()
