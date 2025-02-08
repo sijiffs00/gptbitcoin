@@ -13,7 +13,7 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
     """
     try:
         s3 = boto3.client('s3')
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        current_time = datetime.now().strftime("%m%d_%H%M")
         s3_key = f'bitcoin_charts/{current_time}.png'
         
         # S3에 업로드하기
