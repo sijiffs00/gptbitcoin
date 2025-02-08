@@ -24,11 +24,14 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
             s3_key,  # S3에 저장될 경로/파일명
             ExtraArgs={
                 'ContentType': 'image/png',  # Content-Type 지정
+                'ContentDisposition': 'inline',  # 브라우저에서 바로 보이도록 설정
                 'ACL': 'public-read'  # 파일을 공개적으로 읽을 수 있도록 설정
             }
         )
         
-        # 업로드된 파일의 public URL 생성 (전체 경로 반환)
+        # 업로드된 파일의 public URL 생성
+        url = f"https://{bucket_name}.s3.ap-northeast-2.amazonaws.com/{s3_key}"
+        
         return True, s3_key
         
     except Exception as e:

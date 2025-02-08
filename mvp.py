@@ -58,8 +58,8 @@ def ai_trading():
             success, s3_key = upload_chart_to_s3('chart/my_img.png')
             if success:
                 print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
-                # S3 이미지 URL 생성 (정확한 경로로)
-                img_url = f"https://aibitcoin-chart-img.s3.amazonaws.com/{s3_key}"
+                # S3 이미지 URL 생성
+                img_url = f"https://aibitcoin-chart-img.s3.ap-northeast-2.amazonaws.com/{s3_key}"
 
         # [6]. AI에게 데이터 제공하고 판단 받기
         result = get_ai_decision(
