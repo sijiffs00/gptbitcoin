@@ -18,3 +18,5 @@ chart/
 logs/
 
 trading_history.db
+firebase-credentials.json
+fcm_token.json
