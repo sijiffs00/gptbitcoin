@@ -1,7 +1,9 @@
 import requests
 import os
 from datetime import datetime
-from openai import OpenAI  # OpenAI 추가
+from openai import OpenAI
+from firebase_admin import messaging
+from trade.firebase.fcm_token_manager import FCMTokenManager
 
 # ⭐️ desicion, percentage, reason 을 아이폰 푸시로 발송함.
 # ⭐️ 발송하기전에 reason 을 한국어로 번역&요약하는데 gpt-3.5-turbo가 해줌.
@@ -28,7 +30,7 @@ def translate_with_gpt(text):
         )
         
         translated_text = response.choices[0].message.content
-        print(f"✅ 번역 완료: {translated_text}")  # 번역 결과 로깅
+        print(f"✅ 번역 완료: {translated_text}")
         return translated_text
 
     except ImportError:
@@ -41,42 +43,39 @@ def translate_with_gpt(text):
 
 def send_push_notification(decision, percentage, reason):
     """
-    트레이딩 결과를 아이폰으로 푸시 알림 보내는 함수
+    트레이딩 결과를 FCM을 통해 푸시 알림 보내는 함수
     :param decision: 매수/매도/홀드 결정
     :param percentage: AI가 판단한 확률
     :param reason: AI의 판단 근거
     """
     try:
+        # FCM 토큰 가져오기
+        fcm_manager = FCMTokenManager()
+        token = fcm_manager.get_token()
+        
+        if not token:
+            print("❌ FCM 토큰이 없습니다!")
+            return False
+
         # reason을 한국어로 번역하고 요약
         korean_reason = translate_with_gpt(reason)
         
-        # Pushover API 키 가져오기
-        user_key = os.getenv("PUSHOVER_USER_KEY")
-        app_token = os.getenv("PUSHOVER_APP_TOKEN")
-        
-        # 제목과 메시지 내용 구성
+        # 현재 시간 포맷팅
         current_time = datetime.now().strftime("%m/%d %H:%M")
-        title = f"{decision} ({percentage}%)"  # 제목에 결정과 확률 표시
-        message = f"[{current_time}]\n{korean_reason}"  # 번역된 내용 사용
-
-        # Pushover API로 푸시 알림 전송
-        response = requests.post(
-            "https://api.pushover.net/1/messages.json",
-            data={
-                "token": app_token,
-                "user": user_key,
-                "message": message,
-                "title": title
-            }
+        
+        # FCM 메시지 구성
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=f"{decision} ({percentage}%)",
+                body=f"[{current_time}]\n{korean_reason}"
+            ),
+            token=token["fcmToken"]  # JSON에서 토큰 값 가져오기
         )
         
-        # 전송 결과 확인
-        if response.status_code == 200:
-            print("📱 푸시 알림 전송 완료!")
-            return True
-        else:
-            print(f"❌ 푸시 알림 전송 실패: {response.status_code}")
-            return False
+        # FCM으로 메시지 전송
+        response = messaging.send(message)
+        print(f"📱 푸시 알림 전송 완료! Message ID: {response}")
+        return True
             
     except Exception as e:
         print(f"❌ 푸시 알림 전송 중 오류 발생: {e}")

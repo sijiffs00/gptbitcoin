@@ -4,6 +4,7 @@ import time     # 딜레이를 주기 위한 모듈
 import os      # 환경변수를 불러오기 위한 모듈
 from dotenv import load_dotenv  # .env 파일을 불러오기 위한 모듈
 import datetime  # 현재 시간을 다루기 위한 모듈
+from trade.send_push_msg import send_push_notification
 
 # 현재 스크립트의 절대 경로를 구하고, 로그 파일의 절대 경로 설정하기
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # test_code의 상위 디렉토리
@@ -46,4 +47,20 @@ while True:
             f.write(error_message + '\n')
 
     # 60초 대기 (1분)
-    time.sleep(60) 
+    time.sleep(60)
+
+def test_fcm_notification():
+    """FCM 푸시 알림 테스트"""
+    decision = "테스트"
+    percentage = 99
+    reason = "This is a test notification to check if FCM is working properly."
+    
+    success = send_push_notification(decision, percentage, reason)
+    
+    if success:
+        print("✅ 테스트 알림 전송 성공!")
+    else:
+        print("❌ 테스트 알림 전송 실패!")
+
+if __name__ == "__main__":
+    test_fcm_notification() 
