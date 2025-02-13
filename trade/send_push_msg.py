@@ -73,7 +73,7 @@ def send_push_notification(decision, percentage, reason):
                 title=f"{decision} ({percentage}%)",
                 body=f"[{current_time}]\n{korean_reason}"
             ),
-            token=token["fcmToken"]  # JSON에서 토큰 값 가져오기
+            token=token  # 직접 토큰 문자열 사용
         )
         
         # FCM으로 메시지 전송
