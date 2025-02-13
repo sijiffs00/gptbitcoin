@@ -4,6 +4,10 @@ from datetime import datetime
 from openai import OpenAI
 from firebase_admin import messaging
 from trade.firebase.fcm_token_manager import FCMTokenManager
+from trade.firebase.firebase_admin_config import initialize_firebase
+
+# Firebase 초기화
+initialize_firebase()
 
 # ⭐️ desicion, percentage, reason 을 아이폰 푸시로 발송함.
 # ⭐️ 발송하기전에 reason 을 한국어로 번역&요약하는데 gpt-3.5-turbo가 해줌.
