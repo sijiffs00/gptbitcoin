@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 import base64
@@ -6,6 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 import sqlite3
 from datetime import datetime
+from trade.firebase.fcm_token_manager import FCMTokenManager
 
 app = Flask(__name__)
 CORS(app)  # Flutter 앱에서의 접근 허용
@@ -14,6 +15,9 @@ CORS(app)  # Flutter 앱에서의 접근 허용
 s3_client = boto3.client('s3')
 BUCKET_NAME = 'aibitcoin-chart-img'
 CHARTS_PREFIX = 'bitcoin_charts/'
+
+# FCM 토큰 매니저 인스턴스 생성
+fcm_manager = FCMTokenManager()
 
 @app.route('/api/charts/<path:key>')
 def get_chart(key):
@@ -179,6 +183,36 @@ def get_recent_trades(count):
     finally:
         if conn:
             conn.close()
+
+@app.route('/api/fcm-token', methods=['POST'])
+def update_fcm_token():
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({
+                'success': False,
+                'message': 'FCM 토큰이 제공되지 않았습니다.'
+            }), 400
+            
+        # 토큰 저장
+        if fcm_manager.save_token(token):
+            return jsonify({
+                'success': True,
+                'message': 'FCM 토큰이 성공적으로 저장되었습니다.'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'FCM 토큰 저장에 실패했습니다.'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
 
 def run_server():
     app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)
