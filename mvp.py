@@ -81,7 +81,7 @@ def ai_trading():
         # [7]. 거래 기록 SQLite 데이터베이스에 저장하기
         from trade.save_the_records import save_the_record
         current_price = pyupbit.get_current_price("KRW-BTC")  # 현재 비트코인 가격 가져오기
-        save_the_record(
+        korean_reason = save_the_record(  # 번역된 한국어 텍스트 받아오기
             price=current_price,
             decision=result['decision'],
             percentage=result['percentage'],
@@ -97,7 +97,7 @@ def ai_trading():
         send_push_notification(
             decision=result['decision'],
             percentage=result['percentage'],
-            reason=result['reason']
+            reason=korean_reason  # 번역된 한국어 텍스트 사용
         )
     except Exception as e:
         print(f"\n❌ 에러 발생: {str(e)}")
