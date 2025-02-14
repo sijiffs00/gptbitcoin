@@ -43,6 +43,9 @@ def save_the_record(price, decision, percentage, reason, img_url=None):
     percentage: AI가 제안한 거래 비율
     reason: AI가 결정한 이유 (영어)
     img_url: S3에 저장된 차트 이미지 URL
+    
+    Returns:
+        str: 한국어로 번역된 reason
     """
     try:
         # 먼저 reason을 한국어로 번역
@@ -97,10 +100,13 @@ def save_the_record(price, decision, percentage, reason, img_url=None):
         # 변경사항 저장하기
         conn.commit()
         print("✅ 거래 기록이 성공적으로 저장되었어!")
+        
+        return korean_reason  # 번역된 텍스트 반환
 
     except sqlite3.Error as e:
         # 에러가 발생하면 어떤 에러인지 알려주기
         print(f"❌ 데이터베이스 에러가 발생했어: {e}")
+        return reason  # 에러 발생시 원본 텍스트 반환
 
     finally:
         # 데이터베이스 연결 닫기 (이건 꼭 해야해!)
