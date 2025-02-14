@@ -50,7 +50,7 @@ def send_push_notification(decision, percentage, reason):
     트레이딩 결과를 FCM을 통해 푸시 알림 보내는 함수
     :param decision: 매수/매도/홀드 결정
     :param percentage: AI가 판단한 확률
-    :param reason: AI의 판단 근거
+    :param reason: AI의 판단 근거 (이미 한국어로 번역된 상태)
     """
     try:
         # FCM 토큰 가져오기
@@ -60,20 +60,17 @@ def send_push_notification(decision, percentage, reason):
         if not token:
             print("❌ FCM 토큰이 없습니다!")
             return False
-
-        # reason을 한국어로 번역하고 요약
-        korean_reason = translate_with_gpt(reason)
         
         # 현재 시간 포맷팅
         current_time = datetime.now().strftime("%m/%d %H:%M")
         
-        # FCM 메시지 구성
+        # FCM 메시지 구성 (이미 번역된 reason 사용)
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
-                body=f"[{current_time}]\n{korean_reason}"
+                body=f"[{current_time}]\n{reason}"
             ),
-            token=token  # 직접 토큰 문자열 사용
+            token=token
         )
         
         # FCM으로 메시지 전송
