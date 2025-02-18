@@ -134,58 +134,8 @@ def get_trades():
         if conn:
             conn.close()
 
-# 새로운 API 엔드포인트: 최근 N개의 매매 기록 조회
-@app.route('/api/trades/recent/<int:count>')
-def get_recent_trades(count):
-    try:
-        conn = sqlite3.connect('trading_history.db')
-        cursor = conn.cursor()
-        
-        # 최근 N개의 거래 기록만 가져오기
-        cursor.execute('''
-        SELECT id, timestamp, price, decision, percentage, reason 
-        FROM trades 
-        ORDER BY timestamp DESC
-        LIMIT ?
-        ''', (count,))
-        
-        trades = cursor.fetchall()
-        
-        # 결과를 JSON 형태로 변환
-        trade_list = []
-        for trade in trades:
-            trade_list.append({
-                'id': trade[0],
-                'timestamp': trade[1],
-                'price': trade[2],
-                'decision': trade[3],
-                'percentage': trade[4],
-                'reason': trade[5]
-            })
-        
-        return jsonify({
-            'success': True,
-            'trades': trade_list
-        })
-        
-    except sqlite3.Error as e:
-        return jsonify({
-            'success': False,
-            'error': f'데이터베이스 오류: {str(e)}'
-        }), 500
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-        
-    finally:
-        if conn:
-            conn.close()
-
 @app.route('/api/trades/recent')
-def get_recent_trades():
+def get_recent_two_days_trades():
     try:
         conn = sqlite3.connect('trading_history.db')
         cursor = conn.cursor()
