@@ -114,8 +114,8 @@ if __name__ == '__main__':
         try:
             # 트레이딩 로직 실행
             ai_trading()
-            print("\n⏰ 4시간 후에 다음 분석을 시작합니다...")
-            time.sleep(14400)  # 4시간(14400초) 대기
+            print("\n⏰ 6시간 후에 다음 분석을 시작합니다...")
+            time.sleep(21600)  # 6시간(21600초) 대기
         except KeyboardInterrupt:
             print("\n👋 프로그램을 종료합니다...")
             break
