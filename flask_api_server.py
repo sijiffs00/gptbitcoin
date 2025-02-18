@@ -184,6 +184,124 @@ def get_recent_trades(count):
         if conn:
             conn.close()
 
+@app.route('/api/trades/recent')
+def get_recent_trades():
+    try:
+        conn = sqlite3.connect('trading_history.db')
+        cursor = conn.cursor()
+        
+        # 오늘과 어제의 날짜를 가져오기 위한 쿼리
+        cursor.execute('''
+        SELECT id, timestamp, price, decision, percentage, reason, img 
+        FROM trades 
+        WHERE date(timestamp) >= date('now', '-1 day')
+        ORDER BY timestamp DESC
+        ''')
+        
+        trades = cursor.fetchall()
+        
+        # 결과를 JSON 형태로 변환
+        trade_list = []
+        for trade in trades:
+            trade_list.append({
+                'id': trade[0],
+                'timestamp': trade[1],
+                'img': trade[6],
+                'price': trade[2],
+                'decision': trade[3],
+                'percentage': trade[4],
+                'reason': trade[5]
+            })
+        
+        return jsonify({
+            'success': True,
+            'trades': trade_list
+        })
+        
+    except sqlite3.Error as e:
+        return jsonify({
+            'success': False,
+            'error': f'데이터베이스 오류: {str(e)}'
+        }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/trades/by-date')
+def get_trades_by_date():
+    try:
+        # URL 파라미터에서 날짜 가져오기
+        date = request.args.get('date')
+        
+        if not date:
+            return jsonify({
+                'success': False,
+                'error': '날짜 파라미터가 필요합니다. (예: /api/trades/by-date?date=2024-03-18)'
+            }), 400
+            
+        # 날짜 형식 검증
+        try:
+            datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': '올바른 날짜 형식이 아닙니다. YYYY-MM-DD 형식을 사용하세요.'
+            }), 400
+        
+        conn = sqlite3.connect('trading_history.db')
+        cursor = conn.cursor()
+        
+        # 특정 날짜의 거래 기록 조회
+        cursor.execute('''
+        SELECT id, timestamp, price, decision, percentage, reason, img 
+        FROM trades 
+        WHERE date(timestamp) = date(?)
+        ORDER BY timestamp DESC
+        ''', (date,))
+        
+        trades = cursor.fetchall()
+        
+        # 결과를 JSON 형태로 변환
+        trade_list = []
+        for trade in trades:
+            trade_list.append({
+                'id': trade[0],
+                'timestamp': trade[1],
+                'img': trade[6],
+                'price': trade[2],
+                'decision': trade[3],
+                'percentage': trade[4],
+                'reason': trade[5]
+            })
+        
+        return jsonify({
+            'success': True,
+            'trades': trade_list
+        })
+        
+    except sqlite3.Error as e:
+        return jsonify({
+            'success': False,
+            'error': f'데이터베이스 오류: {str(e)}'
+        }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
+    finally:
+        if conn:
+            conn.close()
+
 @app.route('/api/fcm-token', methods=['POST'])
 def update_fcm_token():
     try:
