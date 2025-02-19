@@ -81,9 +81,18 @@ def send_push_notification(decision, percentage, reason):
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
-                body=f"[{current_time}]\n{reason}",
-                image_url=image_url
+                body=f"[{current_time}]\n{reason}"
             ),
+            apns={
+                'payload': {
+                    'aps': {
+                        'mutable-content': 1
+                    },
+                    'fcm_options': {
+                        'image': image_url
+                    }
+                }
+            },
             token=token
         )
         
