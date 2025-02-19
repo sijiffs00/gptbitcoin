@@ -81,18 +81,14 @@ def send_push_notification(decision, percentage, reason):
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
-                body=f"[{current_time}]\n{reason}"
+                body=f"[{current_time}]\n{reason}",
+                image=image_url  # 여기에 이미지 URL 직접 추가
             ),
-            apns=messaging.APNSConfig(
-                payload=messaging.APNSPayload(
-                    aps=messaging.Aps(
-                        mutable_content=True
-                    )
-                ),
-                fcm_options=messaging.APNSFCMOptions(
-                    image=image_url
-                )
-            ),
+            data={
+                'image_url': image_url,  # 데이터 필드에도 이미지 URL 추가
+                'decision': decision.lower(),
+                'percentage': str(percentage)
+            },
             token=token
         )
         
