@@ -10,8 +10,20 @@ from trade.s3_img_upload import upload_trading_images_to_s3
 # Firebase 초기화
 initialize_firebase()
 
-# S3에 이미지 업로드하고 URL 가져오기
-TRADING_IMAGE_URLS = upload_trading_images_to_s3()
+# S3 이미지 URL (한번 업로드되면 변하지 않음)
+TRADING_IMAGE_URLS = {
+    'buy': 'https://aibitcoin-chart-img.s3.ap-northeast-2.amazonaws.com/trading_images/buy_img.png',
+    'sell': 'https://aibitcoin-chart-img.s3.ap-northeast-2.amazonaws.com/trading_images/sell_img.png',
+    'hold': 'https://aibitcoin-chart-img.s3.ap-northeast-2.amazonaws.com/trading_images/hold_img.png'
+}
+
+# 프로그램 시작시 이미지 업로드 시도 (실패해도 기존 URL 사용)
+try:
+    new_urls = upload_trading_images_to_s3()
+    if new_urls:  # 업로드 성공하면 URL 업데이트
+        TRADING_IMAGE_URLS.update(new_urls)
+except Exception as e:
+    print(f"⚠️ 이미지 업로드 실패했지만, 기존 URL을 사용합니다: {e}")
 
 # ⭐️ desicion, percentage, reason 을 아이폰 푸시로 발송함.
 # ⭐️ 발송하기전에 reason 을 한국어로 번역&요약하는데 gpt-3.5-turbo가 해줌.
