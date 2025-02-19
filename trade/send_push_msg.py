@@ -80,32 +80,46 @@ def send_push_notification(decision, percentage, reason):
         print(f"- 이미지 URL: {image_url}")
             
         # FCM 메시지 구성
-        apns_config = messaging.APNSConfig(
-            headers={'apns-priority': '10'},
-            payload=messaging.APNSPayload(
-                aps=messaging.Aps(
-                    alert=messaging.ApsAlert(
-                        title=f"{decision} ({percentage}%)",
-                        body=f"[{current_time}]\n{reason}"
-                    ),
-                    mutable_content=True
-                ),
-                fcm_options={'image': image_url}
-            )
-        )
-
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
                 body=f"[{current_time}]\n{reason}"
             ),
-            apns=apns_config,
+            data={
+                'image': image_url,
+                'type': 'trading_alert',
+                'decision': decision.lower()
+            },
+            android=messaging.AndroidConfig(
+                notification=messaging.AndroidNotification(
+                    image=image_url
+                )
+            ),
+            apns=messaging.APNSConfig(
+                payload=messaging.APNSPayload(
+                    aps=messaging.Aps(
+                        alert=messaging.ApsAlert(
+                            title=f"{decision} ({percentage}%)",
+                            body=f"[{current_time}]\n{reason}"
+                        ),
+                        mutable_content=True,
+                        sound="default",
+                        category="trading_alert"
+                    )
+                ),
+                headers={'apns-push-type': 'alert', 'apns-priority': '10'},
+                fcm_options=messaging.APNSFCMOptions(
+                    image=image_url
+                )
+            ),
             token=token
         )
-        
+
         print(f"📋 푸시알림 메시지 구성:")
         print(f"- 제목: {decision} ({percentage}%)")
         print(f"- 내용: [{current_time}]\n{reason}")
+        print(f"- 이미지 URL: {image_url}")
+        print(f"- 알림 타입: trading_alert")
         
         # FCM으로 메시지 전송
         response = messaging.send(message)
