@@ -64,9 +64,11 @@ def send_push_notification(decision, percentage, reason):
         fcm_manager = FCMTokenManager()
         token = fcm_manager.get_token()
         
+        print("\n🔑 FCM 토큰 정보:")
         if not token:
-            print("❌ FCM 토큰이 없습니다!")
+            print("❌ FCM 토큰이 없습니다! fcm_token.json 파일을 확인해주세요.")
             return False
+        print(f"- 토큰: {token[:20]}...{token[-20:]}")  # 토큰의 앞뒤 20자만 출력
         
         # 현재 시간 포맷팅
         current_time = datetime.now().strftime("%m/%d %H:%M")
@@ -81,21 +83,14 @@ def send_push_notification(decision, percentage, reason):
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
-                body=f"[{current_time}]\n{reason}",
-                image=image_url  # 여기에 이미지 URL 직접 추가
+                body=f"[{current_time}]\n{reason}"
             ),
-            data={
-                'image_url': image_url,  # 데이터 필드에도 이미지 URL 추가
-                'decision': decision.lower(),
-                'percentage': str(percentage)
-            },
             token=token
         )
         
         print(f"📋 푸시알림 메시지 구성:")
         print(f"- 제목: {decision} ({percentage}%)")
         print(f"- 내용: [{current_time}]\n{reason}")
-        print(f"- 이미지: {'포함됨 ✅' if image_url else '없음 ❌'}")
         
         # FCM으로 메시지 전송
         response = messaging.send(message)
@@ -103,5 +98,7 @@ def send_push_notification(decision, percentage, reason):
         return True
             
     except Exception as e:
-        print(f"❌ 푸시 알림 전송 중 오류 발생: {e}")
+        print(f"❌ 푸시 알림 전송 중 오류 발생: {str(e)}")
+        if "Requested entity was not found" in str(e):
+            print("💡 FCM 토큰이 만료되었거나 유효하지 않습니다. 새로운 토큰이 필요해요!")
         return False
