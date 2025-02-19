@@ -37,3 +37,52 @@ def upload_chart_to_s3(file_name: str) -> tuple[bool, str]:
     except Exception as e:
         print(f"❌ S3 업로드 중 오류 발생: {str(e)}")
         return False, ""
+
+def upload_trading_images_to_s3() -> dict:
+    """
+    트레이딩 결정(매수/매도/홀드)에 사용되는 이미지들을 S3에 업로드하는 함수
+    
+    Returns:
+        dict: 각 결정에 대한 이미지 URL을 담은 딕셔너리
+    """
+    try:
+        s3 = boto3.client('s3')
+        bucket_name = 'aibitcoin-chart-img'
+        image_urls = {}
+        
+        # 업로드할 이미지 파일들
+        images = {
+            'buy': 'img/buy_img.png',
+            'sell': 'img/sell_img.png',
+            'hold': 'img/hold_img.png'
+        }
+        
+        for decision, local_path in images.items():
+            try:
+                s3_key = f'trading_images/{decision}_img.png'
+                
+                # S3에 업로드
+                s3.upload_file(
+                    local_path,
+                    bucket_name,
+                    s3_key,
+                    ExtraArgs={
+                        'ContentType': 'image/png',
+                        'ContentDisposition': 'inline',
+                        'ACL': 'public-read'
+                    }
+                )
+                
+                # URL 생성
+                url = f"https://{bucket_name}.s3.ap-northeast-2.amazonaws.com/{s3_key}"
+                image_urls[decision] = url
+                print(f"✅ {decision} 이미지 업로드 완료: {url}")
+                
+            except Exception as e:
+                print(f"❌ {decision} 이미지 업로드 실패: {str(e)}")
+                
+        return image_urls
+        
+    except Exception as e:
+        print(f"❌ S3 연결 중 오류 발생: {str(e)}")
+        return {}

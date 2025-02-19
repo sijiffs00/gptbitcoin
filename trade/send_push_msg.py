@@ -5,9 +5,13 @@ from openai import OpenAI
 from firebase_admin import messaging
 from trade.firebase.fcm_token_manager import FCMTokenManager
 from trade.firebase.firebase_admin_config import initialize_firebase
+from trade.s3_img_upload import upload_trading_images_to_s3
 
 # Firebase 초기화
 initialize_firebase()
+
+# S3에 이미지 업로드하고 URL 가져오기
+TRADING_IMAGE_URLS = upload_trading_images_to_s3()
 
 # ⭐️ desicion, percentage, reason 을 아이폰 푸시로 발송함.
 # ⭐️ 발송하기전에 reason 을 한국어로 번역&요약하는데 gpt-3.5-turbo가 해줌.
@@ -64,11 +68,15 @@ def send_push_notification(decision, percentage, reason):
         # 현재 시간 포맷팅
         current_time = datetime.now().strftime("%m/%d %H:%M")
         
-        # FCM 메시지 구성 (이미 번역된 reason 사용)
+        # 결정에 따른 이미지 URL 설정
+        image_url = TRADING_IMAGE_URLS.get(decision.lower())
+            
+        # FCM 메시지 구성
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
-                body=f"[{current_time}]\n{reason}"
+                body=f"[{current_time}]\n{reason}",
+                image=image_url
             ),
             token=token
         )
