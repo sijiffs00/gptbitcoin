@@ -82,7 +82,7 @@ def send_push_notification(decision, percentage, reason):
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
                 body=f"[{current_time}]\n{reason}",
-                image=image_url
+                image_url=image_url
             ),
             token=token
         )
