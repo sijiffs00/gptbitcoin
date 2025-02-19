@@ -80,11 +80,26 @@ def send_push_notification(decision, percentage, reason):
         print(f"- 이미지 URL: {image_url}")
             
         # FCM 메시지 구성
+        apns_config = messaging.APNSConfig(
+            headers={'apns-priority': '10'},
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(
+                    alert=messaging.ApsAlert(
+                        title=f"{decision} ({percentage}%)",
+                        body=f"[{current_time}]\n{reason}"
+                    ),
+                    mutable_content=True
+                ),
+                fcm_options={'image': image_url}
+            )
+        )
+
         message = messaging.Message(
             notification=messaging.Notification(
                 title=f"{decision} ({percentage}%)",
                 body=f"[{current_time}]\n{reason}"
             ),
+            apns=apns_config,
             token=token
         )
         
