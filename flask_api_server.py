@@ -283,7 +283,7 @@ def update_fcm_token():
         }), 500
 
 def run_server():
-    app.run(host='0.0.0.0', port=8000, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=8000)
 
 if __name__ == '__main__':
     run_server()
