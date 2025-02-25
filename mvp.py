@@ -17,6 +17,7 @@ from ds import get_deepseek_decision
 import boto3
 from trade.request_the_gpt_4o import get_ai_decision
 from trade.send_push_msg import send_push_notification
+from trade.wallet_manager import WalletManager  # 지갑 매니저 추가
 import threading
 import time
 from flask_api_server import run_server
@@ -26,13 +27,14 @@ load_dotenv()
 
 def ai_trading():
     try:
-        # 1. 현재 투자상태 조회
-        access = os.environ['UPBIT_ACCESS_KEY']
-        secret = os.environ['UPBIT_SECRET_KEY']
-        upbit = pyupbit.Upbit(access, secret)
-        print(f"\n💰:") 
-        print(f"보유 현금: {upbit.get_balance('KRW')} KRW")  # 원화 잔고 조회
-        print(f"보유 비트코인: {upbit.get_balance('KRW-BTC')} BTC")  # 비트코인 잔고 조회
+        # 1. 현재 투자상태 조회 (지갑 매니저 사용)
+        wallet = WalletManager()
+        wallet_info = wallet.get_wallet()
+        print(f"\n💰 지갑:") 
+        print(f"원금: {wallet_info['seed']:,} 원")
+        print(f"보유 현금: {wallet_info['krw_balance']:,} KRW")
+        print(f"보유 비트코인: {wallet_info['btc_balance']} BTC")
+        print(f"마지막 업데이트: {wallet_info['last_updated']}")
 
         # [2]. 📒 오더북(호가 데이터) 조회
         orderbook_summary = get_orderbook_data()
