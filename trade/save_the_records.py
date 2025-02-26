@@ -76,8 +76,11 @@ def save_the_record(price, decision, percentage, reason, img_url=None):
             if 'original_reason' not in column_names:
                 cursor.execute("ALTER TABLE trades ADD COLUMN original_reason TEXT")
                 print("✨ 'original_reason' 칼럼이 성공적으로 추가되었어!")
+            if 'lookback' not in column_names:
+                cursor.execute("ALTER TABLE trades ADD COLUMN lookback TEXT")
+                print("✨ 'lookback' 칼럼이 성공적으로 추가되었어!")
         else:
-            # 새로운 테이블 생성 (이제 original_reason 칼럼도 포함)
+            # 새로운 테이블 생성
             cursor.execute('''
             CREATE TABLE trades (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,15 +90,16 @@ def save_the_record(price, decision, percentage, reason, img_url=None):
                 decision TEXT,
                 percentage INTEGER,
                 reason TEXT,        -- 한국어로 번역된 이유
-                original_reason TEXT -- 원본 영어 이유
+                original_reason TEXT, -- 원본 영어 이유
+                lookback TEXT       -- 거래 결과 회고
             )
             ''')
 
-        # 새로운 거래 기록 저장하기 (번역된 reason과 원본 reason 모두 저장)
+        # 새로운 거래 기록 저장하기 (lookback은 NULL로 저장)
         cursor.execute('''
-        INSERT INTO trades (timestamp, img, price, decision, percentage, reason, original_reason)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (current_time, img_url, price, decision, percentage, korean_reason, reason))
+        INSERT INTO trades (timestamp, img, price, decision, percentage, reason, original_reason, lookback)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (current_time, img_url, price, decision, percentage, korean_reason, reason, None))
 
         # 변경사항 저장하기
         conn.commit()
