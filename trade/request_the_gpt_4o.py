@@ -31,10 +31,12 @@ def create_ai_messages(daily_30_analysis, daily_60_analysis, hourly_analysis, fe
                            "  \"reason\": \"detailed analysis reason\"\n"
                            "}\n\n"
                            "The decision field MUST be exactly one of: 'buy', 'sell', or 'hold'.\n"
-                           "The percentage field MUST be a number between 1 and 100:\n"
-                           "- For 'buy': what percentage of available KRW to use\n"
-                           "- For 'sell': what percentage of available BTC to sell\n"
-                           "- For 'hold': should be 0\n"
+                           "The percentage field represents your confidence level in your decision:\n"
+                           "- 100: Absolutely certain about the decision\n"
+                           "- 70: Very confident about the decision\n"
+                           "- 50: Moderately confident about the decision\n"
+                           "- 20: Slightly confident about the decision\n"
+                           "- 5: Minimal confidence in the decision\n"
                            "No other format or additional fields are allowed."
                 }
             ]
