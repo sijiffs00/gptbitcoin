@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 import sqlite3
 from datetime import datetime
 from trade.firebase.fcm_token_manager import FCMTokenManager
+import json
 
 app = Flask(__name__)
 CORS(app)  # Flutter 앱에서의 접근 허용
@@ -280,6 +281,42 @@ def update_fcm_token():
         return jsonify({
             'success': False,
             'message': f'오류가 발생했습니다: {str(e)}'
+        }), 500
+
+@app.route('/api/wallet')
+def get_wallet_info():
+    try:
+        # my_wallet.json 파일 읽기
+        with open('my_wallet.json', 'r') as file:
+            wallet_data = json.loads(file.read())
+            
+        return jsonify({
+            'success': True,
+            'wallet': {
+                'return_rate': wallet_data['return_rate'],
+                'seed': wallet_data['seed'],
+                'btc_balance': wallet_data['btc_balance'],
+                'krw_balance': wallet_data['krw_balance'],
+                'last_updated': wallet_data['last_updated']
+            }
+        })
+        
+    except FileNotFoundError:
+        return jsonify({
+            'success': False,
+            'error': '지갑 정보를 찾을 수 없습니다.'
+        }), 404
+        
+    except json.JSONDecodeError:
+        return jsonify({
+            'success': False,
+            'error': '지갑 데이터 형식이 올바르지 않습니다.'
+        }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
         }), 500
 
 def run_server():
