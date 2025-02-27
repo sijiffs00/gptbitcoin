@@ -94,7 +94,7 @@ def get_trades():
         
         # 최근 거래 순으로 정렬해서 모든 거래 기록 가져오기
         cursor.execute('''
-        SELECT id, timestamp, price, decision, percentage, reason, img 
+        SELECT id, timestamp, img, price, decision, reason, original_reason, lookback 
         FROM trades 
         ORDER BY timestamp DESC
         ''')
@@ -107,11 +107,12 @@ def get_trades():
             trade_list.append({
                 'id': trade[0],
                 'timestamp': trade[1],
-                'img': trade[6],  # 새로 추가된 이미지 URL
-                'price': trade[2],
-                'decision': trade[3],
-                'percentage': trade[4],
-                'reason': trade[5]
+                'img': trade[2],
+                'price': trade[3],
+                'decision': trade[4],
+                'reason': trade[5],
+                'original_reason': trade[6],
+                'lookback': trade[7]
             })
         
         return jsonify({
@@ -143,7 +144,7 @@ def get_recent_two_days_trades():
         
         # 오늘과 어제의 날짜를 가져오기 위한 쿼리
         cursor.execute('''
-        SELECT id, timestamp, price, decision, percentage, reason, img 
+        SELECT id, timestamp, img, price, decision, reason, original_reason, lookback 
         FROM trades 
         WHERE date(timestamp) >= date('now', '-1 day')
         ORDER BY timestamp DESC
@@ -157,11 +158,12 @@ def get_recent_two_days_trades():
             trade_list.append({
                 'id': trade[0],
                 'timestamp': trade[1],
-                'img': trade[6],
-                'price': trade[2],
-                'decision': trade[3],
-                'percentage': trade[4],
-                'reason': trade[5]
+                'img': trade[2],
+                'price': trade[3],
+                'decision': trade[4],
+                'reason': trade[5],
+                'original_reason': trade[6],
+                'lookback': trade[7]
             })
         
         return jsonify({
@@ -211,7 +213,7 @@ def get_trades_by_date():
         
         # 특정 날짜의 거래 기록 조회
         cursor.execute('''
-        SELECT id, timestamp, price, decision, percentage, reason, img 
+        SELECT id, timestamp, img, price, decision, reason, original_reason, lookback 
         FROM trades 
         WHERE date(timestamp) = date(?)
         ORDER BY timestamp DESC
@@ -225,11 +227,12 @@ def get_trades_by_date():
             trade_list.append({
                 'id': trade[0],
                 'timestamp': trade[1],
-                'img': trade[6],
-                'price': trade[2],
-                'decision': trade[3],
-                'percentage': trade[4],
-                'reason': trade[5]
+                'img': trade[2],
+                'price': trade[3],
+                'decision': trade[4],
+                'reason': trade[5],
+                'original_reason': trade[6],
+                'lookback': trade[7]
             })
         
         return jsonify({
