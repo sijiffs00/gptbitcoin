@@ -52,11 +52,10 @@ def translate_with_gpt(text):
         print(f"원본 텍스트로 진행합니다: {text}")
         return text
 
-def send_push_notification(decision, percentage, reason):
+def send_push_notification(decision, reason):
     """
     트레이딩 결과를 FCM을 통해 푸시 알림 보내는 함수
     :param decision: 매수/매도/홀드 결정
-    :param percentage: AI가 판단한 확률
     :param reason: AI의 판단 근거 (이미 한국어로 번역된 상태)
     """
     try:
@@ -82,7 +81,7 @@ def send_push_notification(decision, percentage, reason):
         # FCM 메시지 구성
         message = messaging.Message(
             notification=messaging.Notification(
-                title=f"{decision} ({percentage}%)",
+                title=f"{decision}",
                 body=f"[{current_time}]\n{reason}"
             ),
             data={
@@ -99,7 +98,7 @@ def send_push_notification(decision, percentage, reason):
                 payload=messaging.APNSPayload(
                     aps=messaging.Aps(
                         alert=messaging.ApsAlert(
-                            title=f"{decision} ({percentage}%)",
+                            title=f"{decision}",
                             body=f"[{current_time}]\n{reason}"
                         ),
                         mutable_content=True,
@@ -116,7 +115,7 @@ def send_push_notification(decision, percentage, reason):
         )
 
         print(f"📋 푸시알림 메시지 구성:")
-        print(f"- 제목: {decision} ({percentage}%)")
+        print(f"- 제목: {decision}")
         print(f"- 내용: [{current_time}]\n{reason}")
         print(f"- 이미지 URL: {image_url}")
         print(f"- 알림 타입: trading_alert")

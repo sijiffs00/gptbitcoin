@@ -74,7 +74,6 @@ def ai_trading():
         korean_reason = save_the_record(  # 번역된 한국어 텍스트 받아오기
             price=current_price,
             decision=result['decision'],
-            percentage=result['percentage'],
             reason=result['reason'],
             img_url=img_url  # 이미지 URL 전달
         )
@@ -85,7 +84,6 @@ def ai_trading():
         # [9]. 🔔 매매 결과를 푸시 메시지로 보내기 
         send_push_notification(
             decision=result['decision'],
-            percentage=result['percentage'],
             reason=korean_reason  # 번역된 한국어 텍스트 사용
         )
     except Exception as e:
