@@ -21,12 +21,30 @@ def get_gpt_analysis(prompt):
             messages=[
                 {
                     "role": "system",
-                    "content": """You are an expert Bitcoin trading analyst. Analyze the trading history and current investment status, then provide evaluation and advice.
+                    "content": """You are an expert Bitcoin trading analyst. Your core mission is to provide a comprehensive analysis:
+
+1. 거래 패턴 분석:
+- 주로 어떤 상황에서 매수/매도를 결정했는지
+- 매매 타이밍이 적절했는지
+- 홀딩 전략은 효과적이었는지
+
+2. 현재 전략의 평가:
+- 장점: 잘한 거래 결정과 그 이유
+- 단점: 아쉬운 부분과 놓친 기회
+- 위험 요소: 주의해야 할 패턴이나 습관
+
+3. 개선을 위한 구체적 조언:
+- 단기 개선점: 당장 고칠 수 있는 부분
+- 중장기 전략: 앞으로의 거래를 위한 체계적인 접근법
+- 실행 가능한 거래 규칙 제안
+
+IMPORTANT: 한국어로 친근하게 답변하되, 전문가다운 통찰력있는 분석을 제공해야 합니다.
+Keep your total response within 400 characters.
 
 You MUST respond in this exact JSON format:
 {
     "return_rate": "current return rate as a number",
-    "lookback": "detailed analysis and advice including all 4 requested points"
+    "lookback": "detailed Korean analysis covering all the points above"
 }"""
                 },
                 {
@@ -96,14 +114,7 @@ def remind_records():
 [상세 거래 기록]
 {detailed_trades}
 
-위 매매기록을 바탕으로 조언해줘.
-
-1. 현재 트레이딩 전략의 장단점
-2. 개선이 필요한 부분
-3. 앞으로의 거래를 위한 구체적인 전략 조언
-
-이 3가지 항목이 포함된 트레이딩 조언을 해줘. 200자 이내로 작성하고 친구에게 말하는 것처럼 쉽게 친숙한 어휘를 사용해야해.
-
+이 거래 기록들을 분석해줘.
 """.strip()
 
         # 거래 통계 계산
@@ -119,6 +130,8 @@ def remind_records():
 시간: {time}
 결정: {decision}
 가격: {price:,} KRW
+거래 이유: {reason}
+당시 분석: {lookback}
 ---""".strip() + "\n\n"
         
         # 최종 프롬프트 생성
