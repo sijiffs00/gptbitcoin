@@ -5,9 +5,53 @@ import time
 import sqlite3
 from flask_api_server import run_server
 from trade.ai_trading import ai_trading
+import json
+from openai import OpenAI
 
 # 0. env 파일 로드
 load_dotenv()
+
+def get_gpt_analysis(prompt):
+    """GPT에게 분석을 요청하는 함수"""
+    client = OpenAI()
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are an expert Bitcoin trading analyst. Analyze the trading history and current investment status, then provide evaluation and advice.
+
+You MUST respond in this exact JSON format:
+{
+    "return_rate": "current return rate as a number",
+    "lookback": "detailed analysis and advice including all 4 requested points"
+}"""
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            response_format={
+                "type": "json_object"
+            },
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        result = response.choices[0].message.content
+        print("\n🎯 토큰 사용량:")
+        print(f"프롬프트 토큰: {response.usage.prompt_tokens}개")
+        print(f"응답 토큰: {response.usage.completion_tokens}개")
+        print(f"전체 토큰: {response.usage.total_tokens}개")
+        
+        return json.loads(result)
+        
+    except Exception as e:
+        print(f"❌ GPT API 호출 중 에러 발생: {str(e)}")
+        return None
 
 def remind_records():
     try:
@@ -52,15 +96,14 @@ def remind_records():
 [상세 거래 기록]
 {detailed_trades}
 
-위 거래 기록을 분석하여 다음 사항들을 평가해주세요:
+위 매매기록을 바탕으로 조언해줘.
 
-1. 성공적인 거래들의 공통된 패턴
-2. 실패한 거래들의 문제점
-3. 현재 트레이딩 전략의 장단점
-4. 개선이 필요한 부분
-5. 앞으로의 거래를 위한 구체적인 조언
+1. 현재 트레이딩 전략의 장단점
+2. 개선이 필요한 부분
+3. 앞으로의 거래를 위한 구체적인 전략 조언
 
-응답은 각 항목별로 구체적이고 실행 가능한 내용으로 작성해주세요.
+이 3가지 항목이 포함된 트레이딩 조언을 해줘. 200자 이내로 작성하고 친구에게 말하는 것처럼 쉽게 친숙한 어휘를 사용해야해.
+
 """.strip()
 
         # 거래 통계 계산
@@ -89,7 +132,12 @@ def remind_records():
         
         print("\n=== GPT 분석용 트레이딩 기록 ===")
         print(final_prompt)
-        # TODO: 이후에 이 프롬프트를 GPT API에 전송하는 로직 추가 예정
+        
+        # GPT API 호출
+        analysis_result = get_gpt_analysis(final_prompt)
+        if analysis_result:
+            print("\n=== GPT 분석 결과 ===")
+            print(f"분석 및 조언:\n{analysis_result['lookback']}")
         
     except sqlite3.OperationalError as e:
         if 'no such table' in str(e):
