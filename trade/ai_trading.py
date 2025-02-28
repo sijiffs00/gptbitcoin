@@ -16,6 +16,9 @@ from trade.buy_sell_hold import buy_sell_hold
 
 def ai_trading():
     try:
+        # 업비트 객체 초기화
+        upbit = pyupbit.Upbit(os.getenv('UPBIT_ACCESS_KEY'), os.getenv('UPBIT_SECRET_KEY'))
+
         # 1. 현재 투자상태 조회 (지갑 매니저 사용)
         wallet = WalletManager()
         wallet_info = wallet.get_wallet()
