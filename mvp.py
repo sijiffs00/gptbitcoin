@@ -14,16 +14,16 @@ if __name__ == '__main__':
     api_thread = threading.Thread(target=run_server)
     api_thread.daemon = True  # 메인 프로그램이 종료되면 API 서버도 종료
     api_thread.start()
-    print("🚀 API 서버가 시작되었습니다 (포트: 8000)")
+    print("🚀 API 서버가 시작되었습니다")
     
-    print("🤖 트레이딩 봇이 시작됩니다... (OpenAI API 호출 기능은 비활성화됨)")
+    print("🤖 트레이딩 봇이 시작됩니다...")
     while True:
         try:
-            remind_records()
+            # remind_records()
             
             ai_trading()
             
-            print("\n⏰ OpenAI API 호출 기능이 비활성화되었습니다. 서버만 실행 중...")
+            print("\n⏰ 트레이딩 작업 완료! 1시간 후 다시 실행합니다...")
             time.sleep(3600)  # 1시간(3600초) 대기
         except KeyboardInterrupt:
             print("\n👋 프로그램을 종료합니다...")
