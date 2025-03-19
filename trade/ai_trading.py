@@ -6,7 +6,7 @@ from trade.fear_and_greed import get_fear_greed_data
 from trade.orderbook_data import get_orderbook_data
 from trade.tec_analysis import calculate_indicators, analyze_market_data, get_market_data
 from trade.wallet_manager import WalletManager
-from trade.request_the_gpt_4o import get_ai_decision
+from trade.request_the_deepseek import get_ai_decision
 from trade.send_push_msg import send_push_notification
 from trade.save_the_records import save_the_record
 from trade.buy_sell_hold import buy_sell_hold
