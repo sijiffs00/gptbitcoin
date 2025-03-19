@@ -40,6 +40,13 @@ try:
         result = response.json()
         print("응답 결과:")
         print(result["choices"][0]["message"]["content"])
+        
+        # 토큰 사용량 출력
+        if "usage" in result:
+            print("\n토큰 사용량:")
+            print(f"입력 토큰 수: {result['usage']['prompt_tokens']}개")
+            print(f"출력 토큰 수: {result['usage']['completion_tokens']}개")
+            print(f"총 토큰 수: {result['usage']['total_tokens']}개")
     else:
         print(f"API 요청 실패: 상태 코드 {response.status_code}")
         print(response.text)
