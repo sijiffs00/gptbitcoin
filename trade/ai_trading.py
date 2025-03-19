@@ -1,13 +1,10 @@
 import os
 from dotenv import load_dotenv
 import pyupbit
-import threading
 import time
 from trade.fear_and_greed import get_fear_greed_data
-from trade.img_capture import capture_chart, encode_image_to_base64, setup_chrome_options
 from trade.orderbook_data import get_orderbook_data
 from trade.tec_analysis import calculate_indicators, analyze_market_data, get_market_data
-from trade.s3_img_upload import upload_chart_to_s3
 from trade.wallet_manager import WalletManager
 from trade.request_the_gpt_4o import get_ai_decision
 from trade.send_push_msg import send_push_notification
@@ -41,50 +38,27 @@ def ai_trading():
         # [4]. 😱 공포&탐욕지수 API요청 후 조회
         fear_greed_data = get_fear_greed_data() 
 
-        # [5]. 차트 이미지 캡처하고 S3버킷에 업로드
-        chrome_options = setup_chrome_options()
-        capture_success = capture_chart(chrome_options) 
-
-        # S3 이미지 URL 초기화
-        img_url = None
-        
-        if capture_success:
-            success, s3_key = upload_chart_to_s3('chart/my_img.png')
-            if success:
-                print(f"\n📤 차트 이미지 S3 업로드 완료: {s3_key}")
-                # S3 이미지 URL 생성
-                img_url = f"https://aibitcoin-chart-img.s3.ap-northeast-2.amazonaws.com/{s3_key}"
-
-        # [6]. AI에게 데이터 제공하고 판단 받기
+        # [5]. AI에게 데이터 제공하고 판단 받기
         result = get_ai_decision(
             daily_30_analysis,
             daily_60_analysis,
             hourly_analysis,
             fear_greed_data,
-            orderbook_summary,
-            'chart/my_img.png'
+            orderbook_summary
         )
 
-        # 이미지 분석이 끝났으니 이제 로컬 파일 삭제
-        try:
-            os.remove('chart/my_img.png')
-            print("🗑️ 로컬 차트 이미지 삭제 완료")
-        except Exception as e:
-            print(f"로컬 이미지 파일 삭제 중 오류 발생: {e}")
-
-        # [7]. 거래 기록 SQLite 데이터베이스에 저장하기
+        # [6]. 거래 기록 SQLite 데이터베이스에 저장하기
         current_price = pyupbit.get_current_price("KRW-BTC")  # 현재 비트코인 가격 가져오기
         korean_reason = save_the_record(  # 번역된 한국어 텍스트 받아오기
             price=current_price,
             decision=result['decision'],
-            reason=result['reason'],
-            img_url=img_url  # 이미지 URL 전달
+            reason=result['reason']
         )
 
-        # [8]. AI의 판단에 따라 실제로 자동매매 진행하기
+        # [7]. AI의 판단에 따라 실제로 자동매매 진행하기
         buy_sell_hold(result, upbit)
 
-        # [9]. 🔔 매매 결과를 푸시 메시지로 보내기 
+        # [8]. 🔔 매매 결과를 푸시 메시지로 보내기 
         send_push_notification(
             decision=result['decision'],
             reason=korean_reason  # 번역된 한국어 텍스트 사용

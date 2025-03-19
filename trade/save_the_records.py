@@ -35,13 +35,12 @@ def translate_with_gpt(text):
         print(f"원본 텍스트로 진행합니다: {text}")
         return text
 
-def save_the_record(price, decision, reason, img_url=None):
+def save_the_record(price, decision, reason):
     """
     매매 기록을 데이터베이스에 저장하는 함수야
     price: 비트코인의 현재 가격
     decision: AI가 결정한 거래 종류 (buy/sell/hold)
     reason: AI가 결정한 이유 (영어)
-    img_url: S3에 저장된 차트 이미지 URL
     
     Returns:
         str: 한국어로 번역된 reason
@@ -69,9 +68,6 @@ def save_the_record(price, decision, reason, img_url=None):
             column_names = [col[1] for col in columns]
             
             # 필요한 칼럼들 추가
-            if 'img' not in column_names:
-                cursor.execute("ALTER TABLE trades ADD COLUMN img TEXT")
-                print("✨ 'img' 칼럼이 성공적으로 추가되었어!")
             if 'original_reason' not in column_names:
                 cursor.execute("ALTER TABLE trades ADD COLUMN original_reason TEXT")
                 print("✨ 'original_reason' 칼럼이 성공적으로 추가되었어!")
@@ -84,7 +80,6 @@ def save_the_record(price, decision, reason, img_url=None):
             CREATE TABLE trades (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp DATETIME,
-                img TEXT,           -- S3 이미지 URL을 저장할 칼럼
                 price REAL,
                 decision TEXT,
                 reason TEXT,        -- 한국어로 번역된 이유
@@ -95,9 +90,9 @@ def save_the_record(price, decision, reason, img_url=None):
 
         # 새로운 거래 기록 저장하기 (lookback은 NULL로 저장)
         cursor.execute('''
-        INSERT INTO trades (timestamp, img, price, decision, reason, original_reason, lookback)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (current_time, img_url, price, decision, korean_reason, reason, None))
+        INSERT INTO trades (timestamp, price, decision, reason, original_reason, lookback)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ''', (current_time, price, decision, korean_reason, reason, None))
 
         # 변경사항 저장하기
         conn.commit()

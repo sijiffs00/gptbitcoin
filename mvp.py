@@ -19,11 +19,9 @@ if __name__ == '__main__':
     print("🤖 트레이딩 봇이 시작됩니다... (OpenAI API 호출 기능은 비활성화됨)")
     while True:
         try:
-            # remind_records() 함수 호출 비활성화
-            # remind_records()
+            remind_records()
             
-            # ai_trading() 함수 호출 비활성화
-            # ai_trading()
+            ai_trading()
             
             print("\n⏰ OpenAI API 호출 기능이 비활성화되었습니다. 서버만 실행 중...")
             time.sleep(3600)  # 1시간(3600초) 대기

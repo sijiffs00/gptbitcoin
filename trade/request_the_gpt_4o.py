@@ -3,19 +3,7 @@ import json
 from datetime import datetime
 import os
 
-def prepare_chart_image(image_path):
-    """차트 이미지를 인코딩하고 관련 로그를 출력하는 함수"""
-    try:
-        from trade.img_capture import encode_image_to_base64
-        base64_image = encode_image_to_base64(image_path)
-        print("\n📸 이미지 인코딩 성공!")
-        print(f"인코딩된 이미지 길이: {len(base64_image)} 문자")
-        return base64_image
-    except FileNotFoundError:
-        print("차트 이미지를 찾을 수 없어 :(")
-        return None
-
-def create_ai_messages(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_greed_data, orderbook_summary, base64_image):
+def create_ai_messages(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_greed_data, orderbook_summary):
     """AI에게 보낼 메시지를 생성하는 함수"""
     messages = [
         {
@@ -48,16 +36,6 @@ def create_ai_messages(daily_30_analysis, daily_60_analysis, hourly_analysis, fe
             ]
         }
     ]
-
-    # 이미지가 있으면 메시지에 추가
-    if base64_image:
-        messages[1]["content"].append({
-            "type": "image_url",
-            "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-        })
-        print("🎨 API 요청에 이미지가 포함되었어!")
-    else:
-        print("⚠️ API 요청에 이미지가 포함되지 않았어!")
 
     return messages
 
@@ -92,24 +70,20 @@ def process_ai_response(response):
 
     return result
 
-def get_ai_decision(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_greed_data, orderbook_summary, image_path):
+def get_ai_decision(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_greed_data, orderbook_summary):
     """AI에게 데이터를 제공하고 투자 판단을 받는 메인 함수"""
     client = OpenAI()
     
-    # 1. 이미지 준비
-    base64_image = prepare_chart_image(image_path)
-    
-    # 2. 메시지 생성
+    # 메시지 생성
     messages = create_ai_messages(
         daily_30_analysis, 
         daily_60_analysis, 
         hourly_analysis, 
         fear_greed_data, 
-        orderbook_summary, 
-        base64_image
+        orderbook_summary
     )
     
-    # 3. API 호출
+    # API 호출
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,
@@ -120,5 +94,5 @@ def get_ai_decision(daily_30_analysis, daily_60_analysis, hourly_analysis, fear_
         max_tokens=500
     )
     
-    # 4. 응답 처리 및 반환
+    # 응답 처리 및 반환
     return process_ai_response(response) 
