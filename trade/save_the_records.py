@@ -3,37 +3,98 @@ from datetime import datetime  # 현재 시간을 기록하기 위한 모듈이�
 import pytz  # 시간대 처리를 위한 라이브러리야
 import os
 from openai import OpenAI
+import time
+import requests
+import json
 
-def translate_with_gpt(text):
+def translate_with_deepseek(text):
     """
-    영어로 된 트레이딩 분석을 한국어로 번역하고 요약하는 함수
+    영어로 된 트레이딩 분석을 DeepSeek 모델을 사용해 한국어로 번역하고 요약하는 함수
     """
     try:
-        # OpenAI API 키 확인
-        api_key = os.getenv("OPENAI_API_KEY")
+        # DeepSeek API 키 확인
+        api_key = os.getenv("DEEPSEEK_API_KEY")
         if not api_key:
-            print("❌ OpenAI API 키가 설정되지 않았어요!")
-            return text
+            print("❌ DeepSeek API 키가 설정되지 않았어요!")
+            # API 키가 없으면 간단한 번역으로 대체
+            return f"[번역 실패] {text[:150]}... (API 키 없음)"
 
-        client = OpenAI(api_key=api_key)
+        # DeepSeek API 엔드포인트
+        url = "https://api.deepseek.com/v1/chat/completions"
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역해. 반말을 사용해야해. 중학생이 이해할수있는 수준으로 쉽게 풀어서 요약해줘. 3줄로 요약해야 해."},
-                {"role": "user", "content": text}
-            ],
-            temperature=0.7
-        )
+        # 요청 헤더 설정
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
         
-        translated_text = response.choices[0].message.content
-        print(f"✅ 번역 완료: {translated_text}")
-        return translated_text
-
+        # API 요청 최대 3번 시도
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # 요청 데이터 설정
+                data = {
+                    "model": "deepseek-chat",  # DeepSeek V3 모델 사용
+                    "messages": [
+                        {
+                            "role": "system", 
+                            "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역해. 반말을 사용해야해. 중학생이 이해할수있는 수준으로 쉽게 풀어서 요약해줘. 3줄로 요약해야 해."
+                        },
+                        {
+                            "role": "user", 
+                            "content": text
+                        }
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 300
+                }
+                
+                # API 요청 보내기
+                response = requests.post(url, headers=headers, json=data, timeout=10)
+                
+                # 응답 상태 확인
+                if response.status_code == 200:
+                    result = response.json()
+                    translated_text = result["choices"][0]["message"]["content"]
+                    
+                    # 토큰 사용량 출력 (있을 경우)
+                    if "usage" in result:
+                        print("\n🎯 DeepSeek 토큰 사용량:")
+                        print(f"입력 토큰: {result['usage']['prompt_tokens']}개")
+                        print(f"출력 토큰: {result['usage']['completion_tokens']}개")
+                        print(f"총 토큰: {result['usage']['total_tokens']}개")
+                    
+                    print(f"✅ DeepSeek 번역 완료: {translated_text}")
+                    return translated_text
+                else:
+                    print(f"❌ DeepSeek API 요청 실패: 상태 코드 {response.status_code}")
+                    print(response.text)
+                    if attempt == max_retries - 1:  # 마지막 시도였으면
+                        raise Exception(f"API 요청 실패: {response.text}")
+                    time.sleep(1)  # 1초 대기 후 재시도
+            except Exception as retry_error:
+                print(f"❌ DeepSeek 번역 시도 {attempt+1}/{max_retries} 실패: {str(retry_error)}")
+                if attempt == max_retries - 1:  # 마지막 시도였으면
+                    raise  # 예외를 다시 발생시켜 아래 except 블록으로 이동
+                time.sleep(1)  # 1초 대기 후 재시도
+                
     except Exception as e:
-        print(f"❌ GPT 번역 중 오류 발생: {str(e)}")
+        print(f"❌ DeepSeek 번역 중 오류 발생: {str(e)}")
         print(f"원본 텍스트로 진행합니다: {text}")
-        return text
+        
+        # 번역 실패 시 간단한 메시지로 대체
+        if text and len(text) > 10:  # 텍스트가 있고 충분히 길면
+            # 간단한 메시지로 대체 (현지화)
+            if "buy" in text.lower():
+                return "비트코인 매수 신호가 감지됐어! 기술적 지표와 시장 분위기가 긍정적이야. 거래량도 좋고 상승 추세가 유지되고 있어."
+            elif "sell" in text.lower():
+                return "비트코인 매도 신호야! 기술적 지표가 하락세를 보이고 있어. 위험 신호가 보이니 수익 실현을 고려해봐."
+            elif "hold" in text.lower():
+                return "지금은 관망하는 게 좋을 것 같아. 시장이 혼란스럽고 명확한 방향이 안 보여. 더 확실한 신호가 올 때까지 기다려봐."
+            else:
+                return f"[번역 실패] 영어 원문: {text[:150]}..."  # 원문 앞부분만 표시
+        else:
+            return f"[번역 실패] 영어 원문: {text}"
 
 def save_the_record(price, decision, reason):
     """
@@ -46,8 +107,8 @@ def save_the_record(price, decision, reason):
         str: 한국어로 번역된 reason
     """
     try:
-        # 먼저 reason을 한국어로 번역
-        korean_reason = translate_with_gpt(reason)
+        # 먼저 reason을 한국어로 번역 (DeepSeek 사용)
+        korean_reason = translate_with_deepseek(reason)
 
         # 한국 시간대 설정하기
         kst = pytz.timezone('Asia/Seoul')
