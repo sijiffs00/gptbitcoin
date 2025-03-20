@@ -38,19 +38,19 @@ def translate_with_deepseek(text):
                     "messages": [
                         {
                             "role": "system", 
-                            "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역해. 반말을 사용해야해. 중학생이 이해할수있는 수준으로 쉽게 풀어서 요약해줘. 3줄로 요약해야 해."
+                            "content": "너는 트레이딩 전문 번역가야. 영어로 된 트레이딩 분석 내용을 한국어로 번역해. 반말을 사용해. 중학생이 이해할수있는 수준으로 쉽게 요약해줘. 3줄로 요약해."
                         },
                         {
                             "role": "user", 
                             "content": text
                         }
                     ],
-                    "temperature": 0.7,
-                    "max_tokens": 300
+                    "temperature": 0.5,  # 더 결정적인 응답을 위해 온도 낮춤
+                    "max_tokens": 200  # 토큰 수 줄임
                 }
                 
                 # API 요청 보내기
-                response = requests.post(url, headers=headers, json=data, timeout=10)
+                response = requests.post(url, headers=headers, json=data, timeout=30)  # 타임아웃 30초로 증가
                 
                 # 응답 상태 확인
                 if response.status_code == 200:
