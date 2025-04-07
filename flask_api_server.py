@@ -289,8 +289,12 @@ def update_fcm_token():
 @app.route('/api/upbit_wallet')
 def get_upbit_wallet_info():
     try:
+        # 프로젝트 루트 디렉토리 경로 가져오기
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        wallet_path = os.path.join(root_dir, 'upbit_wallet.json')
+        
         # upbit_wallet.json 파일 읽기
-        with open('upbit_wallet.json', 'r') as file:
+        with open(wallet_path, 'r') as file:
             wallet_data = json.loads(file.read())
             
         return jsonify({
