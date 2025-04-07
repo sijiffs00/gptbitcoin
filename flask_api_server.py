@@ -20,6 +20,29 @@ CHARTS_PREFIX = 'bitcoin_charts/'
 # FCM 토큰 매니저 인스턴스 생성
 fcm_manager = FCMTokenManager()
 
+# 지갑 파일 경로 설정
+WALLET_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'upbit_wallet.json')
+
+def initialize_wallet_file():
+    """지갑 파일이 없으면 생성하는 함수"""
+    if not os.path.exists(WALLET_FILE_PATH):
+        default_data = {
+            "return_rate": 0,
+            "seed": 0,
+            "btc_balance": 0,
+            "krw_balance": 0,
+            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        try:
+            with open(WALLET_FILE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(default_data, f, indent=4, ensure_ascii=False)
+            print(f"✅ 지갑 파일이 생성되었습니다: {WALLET_FILE_PATH}")
+        except Exception as e:
+            print(f"❌ 지갑 파일 생성 중 오류 발생: {str(e)}")
+
+# 서버 시작 시 지갑 파일 초기화
+initialize_wallet_file()
+
 @app.route('/api/charts/<path:key>')
 def get_chart(key):
     try:
@@ -289,30 +312,17 @@ def update_fcm_token():
 @app.route('/api/upbit_wallet')
 def get_upbit_wallet_info():
     try:
-        # 프로젝트 루트 디렉토리의 절대 경로 가져오기
-        root_dir = os.path.dirname(os.path.abspath(__file__))
-        wallet_path = os.path.join(root_dir, 'upbit_wallet.json')
-        
-        # 파일이 없으면 기본 데이터로 생성
-        if not os.path.exists(wallet_path):
-            default_data = {
-                "return_rate": 0,
-                "seed": 0,
-                "btc_balance": 0,
-                "krw_balance": 0,
-                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            }
-            with open(wallet_path, 'w', encoding='utf-8') as f:
-                json.dump(default_data, f, indent=4, ensure_ascii=False)
+        # 파일이 없으면 초기화
+        initialize_wallet_file()
         
         # upbit_wallet.json 파일 읽기
-        with open(wallet_path, 'r', encoding='utf-8') as file:
+        with open(WALLET_FILE_PATH, 'r', encoding='utf-8') as file:
             file_content = file.read()
-            print(f"📄 파일 경로: {wallet_path}")  # 파일 경로 출력
-            print(f"📄 파일 내용: {file_content}")  # 파일 내용 출력
+            print(f"📄 파일 경로: {WALLET_FILE_PATH}")
+            print(f"📄 파일 내용: {file_content}")
             
             wallet_data = json.loads(file_content)
-            print(f"💾 파싱된 데이터: {wallet_data}")  # 파싱된 데이터 출력
+            print(f"💾 파싱된 데이터: {wallet_data}")
             
             # 필요한 키가 모두 있는지 확인
             required_keys = ['return_rate', 'seed', 'btc_balance', 'krw_balance', 'last_updated']
@@ -323,10 +333,10 @@ def get_upbit_wallet_info():
             return jsonify({
                 'success': True,
                 'wallet': {
-                    'return_rate': float(wallet_data['return_rate']),  # 숫자로 변환
-                    'seed': float(wallet_data['seed']),  # 숫자로 변환
-                    'btc_balance': float(wallet_data['btc_balance']),  # 숫자로 변환
-                    'krw_balance': float(wallet_data['krw_balance']),  # 숫자로 변환
+                    'return_rate': float(wallet_data['return_rate']),
+                    'seed': float(wallet_data['seed']),
+                    'btc_balance': float(wallet_data['btc_balance']),
+                    'krw_balance': float(wallet_data['krw_balance']),
                     'last_updated': wallet_data['last_updated']
                 }
             })
