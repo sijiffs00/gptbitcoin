@@ -289,9 +289,26 @@ def update_fcm_token():
 @app.route('/api/upbit_wallet')
 def get_upbit_wallet_info():
     try:
-        # upbit_wallet.json 파일 읽기 (프로젝트 루트에서)
-        with open('upbit_wallet.json', 'r', encoding='utf-8') as file:
+        # 프로젝트 루트 디렉토리의 절대 경로 가져오기
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        wallet_path = os.path.join(root_dir, 'upbit_wallet.json')
+        
+        # 파일이 없으면 기본 데이터로 생성
+        if not os.path.exists(wallet_path):
+            default_data = {
+                "return_rate": 0,
+                "seed": 0,
+                "btc_balance": 0,
+                "krw_balance": 0,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            with open(wallet_path, 'w', encoding='utf-8') as f:
+                json.dump(default_data, f, indent=4, ensure_ascii=False)
+        
+        # upbit_wallet.json 파일 읽기
+        with open(wallet_path, 'r', encoding='utf-8') as file:
             file_content = file.read()
+            print(f"📄 파일 경로: {wallet_path}")  # 파일 경로 출력
             print(f"📄 파일 내용: {file_content}")  # 파일 내용 출력
             
             wallet_data = json.loads(file_content)
@@ -299,9 +316,9 @@ def get_upbit_wallet_info():
             
             # 필요한 키가 모두 있는지 확인
             required_keys = ['return_rate', 'seed', 'btc_balance', 'krw_balance', 'last_updated']
-            for key in required_keys:
-                if key not in wallet_data:
-                    raise KeyError(f"필수 키 '{key}'가 없습니다")
+            missing_keys = [key for key in required_keys if key not in wallet_data]
+            if missing_keys:
+                raise KeyError(f"필수 키 {', '.join(missing_keys)}가 없습니다")
             
             return jsonify({
                 'success': True,
