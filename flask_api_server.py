@@ -21,24 +21,31 @@ CHARTS_PREFIX = 'bitcoin_charts/'
 fcm_manager = FCMTokenManager()
 
 # 지갑 파일 경로 설정
-WALLET_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'upbit_wallet.json')
+WALLET_FILE_PATH = os.path.join(os.getcwd(), 'upbit_wallet.json')
 
 def initialize_wallet_file():
     """지갑 파일이 없으면 생성하는 함수"""
-    if not os.path.exists(WALLET_FILE_PATH):
-        default_data = {
-            "return_rate": 0,
-            "seed": 0,
-            "btc_balance": 0,
-            "krw_balance": 0,
-            "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        try:
+    try:
+        print(f"💡 지갑 파일 초기화 시도... 경로: {WALLET_FILE_PATH}")
+        
+        if not os.path.exists(WALLET_FILE_PATH):
+            print("📝 지갑 파일이 없어서 새로 생성합니다...")
+            default_data = {
+                "seed": 0,
+                "btc_balance": 0,
+                "krw_balance": 0,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
             with open(WALLET_FILE_PATH, 'w', encoding='utf-8') as f:
                 json.dump(default_data, f, indent=4, ensure_ascii=False)
             print(f"✅ 지갑 파일이 생성되었습니다: {WALLET_FILE_PATH}")
-        except Exception as e:
-            print(f"❌ 지갑 파일 생성 중 오류 발생: {str(e)}")
+        else:
+            print(f"✅ 지갑 파일이 이미 존재합니다: {WALLET_FILE_PATH}")
+            
+    except Exception as e:
+        print(f"❌ 지갑 파일 생성/확인 중 오류 발생: {str(e)}")
+        print(f"💻 현재 작업 디렉토리: {os.getcwd()}")
+        print(f"🔐 파일 권한: {os.access(os.path.dirname(WALLET_FILE_PATH), os.W_OK)}")
 
 # 서버 시작 시 지갑 파일 초기화
 initialize_wallet_file()
@@ -312,34 +319,51 @@ def update_fcm_token():
 @app.route('/api/upbit_wallet')
 def get_upbit_wallet_info():
     try:
-        # 파일이 없으면 초기화
-        initialize_wallet_file()
+        print("\n🔄 지갑 정보 요청 받음...")
         
+        print(f"📂 파일 읽기 시도: {WALLET_FILE_PATH}")
         # upbit_wallet.json 파일 읽기
         with open(WALLET_FILE_PATH, 'r', encoding='utf-8') as file:
             file_content = file.read()
-            print(f"📄 파일 경로: {WALLET_FILE_PATH}")
             print(f"📄 파일 내용: {file_content}")
             
             wallet_data = json.loads(file_content)
             print(f"💾 파싱된 데이터: {wallet_data}")
             
             # 필요한 키가 모두 있는지 확인
-            required_keys = ['return_rate', 'seed', 'btc_balance', 'krw_balance', 'last_updated']
+            required_keys = ['seed', 'btc_balance', 'krw_balance', 'last_updated']
+            print(f"🔍 필수 키 확인 중... 현재 키들: {list(wallet_data.keys())}")
+            
             missing_keys = [key for key in required_keys if key not in wallet_data]
             if missing_keys:
+                print(f"⚠️ 누락된 키 발견: {missing_keys}")
                 raise KeyError(f"필수 키 {', '.join(missing_keys)}가 없습니다")
             
-            return jsonify({
+            # 현재 총 자산 계산 (원화 + 비트코인)
+            current_total = float(wallet_data['krw_balance'])
+            if float(wallet_data['btc_balance']) > 0:
+                # 비트코인 현재가 조회 (실제로는 업비트 API로 가져와야 함)
+                import pyupbit
+                current_price = pyupbit.get_current_price("KRW-BTC")
+                if current_price:
+                    current_total += float(wallet_data['btc_balance']) * current_price
+            
+            # 수익률 계산
+            initial_seed = float(wallet_data['seed'])
+            return_rate = ((current_total - initial_seed) / initial_seed * 100) if initial_seed > 0 else 0
+            
+            response_data = {
                 'success': True,
                 'wallet': {
-                    'return_rate': float(wallet_data['return_rate']),
+                    'return_rate': float(return_rate),
                     'seed': float(wallet_data['seed']),
                     'btc_balance': float(wallet_data['btc_balance']),
                     'krw_balance': float(wallet_data['krw_balance']),
                     'last_updated': wallet_data['last_updated']
                 }
-            })
+            }
+            print(f"✅ 응답 데이터 준비 완료: {response_data}")
+            return jsonify(response_data)
         
     except FileNotFoundError as e:
         print(f"❌ 파일을 찾을 수 없습니다: {str(e)}")
