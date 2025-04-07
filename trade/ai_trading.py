@@ -18,9 +18,14 @@ def ai_trading():
 
         # 1. 현재 투자상태 조회 (지갑 매니저 사용)
         wallet = WalletManager()
+        
+        # 실제 업비트 잔고로 지갑 정보 업데이트
+        wallet.update_from_upbit(upbit)
+        
+        # 업데이트된 지갑 정보 가져오기
         wallet_info = wallet.get_wallet()
         print(f"\n💰 지갑:") 
-        print(f"원금: {wallet_info['seed']:,} 원")
+        print(f"총 자산: {wallet_info['seed']:,} 원")
         print(f"보유 현금: {wallet_info['krw_balance']:,} KRW")
         print(f"보유 비트코인: {wallet_info['btc_balance']} BTC")
         print(f"마지막 업데이트: {wallet_info['last_updated']}")
