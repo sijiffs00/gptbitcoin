@@ -291,36 +291,59 @@ def get_upbit_wallet_info():
     try:
         # upbit_wallet.json 파일 읽기 (프로젝트 루트에서)
         with open('upbit_wallet.json', 'r', encoding='utf-8') as file:
-            wallet_data = json.loads(file.read())
-            print(f"✅ 지갑 데이터를 성공적으로 읽었습니다: {wallet_data}")  # 디버깅용 로그
+            file_content = file.read()
+            print(f"📄 파일 내용: {file_content}")  # 파일 내용 출력
             
-        return jsonify({
-            'success': True,
-            'wallet': {
-                'return_rate': wallet_data['return_rate'],
-                'seed': wallet_data['seed'],
-                'btc_balance': wallet_data['btc_balance'],
-                'krw_balance': wallet_data['krw_balance'],
-                'last_updated': wallet_data['last_updated']
-            }
-        })
+            wallet_data = json.loads(file_content)
+            print(f"💾 파싱된 데이터: {wallet_data}")  # 파싱된 데이터 출력
+            
+            # 필요한 키가 모두 있는지 확인
+            required_keys = ['return_rate', 'seed', 'btc_balance', 'krw_balance', 'last_updated']
+            for key in required_keys:
+                if key not in wallet_data:
+                    raise KeyError(f"필수 키 '{key}'가 없습니다")
+            
+            return jsonify({
+                'success': True,
+                'wallet': {
+                    'return_rate': float(wallet_data['return_rate']),  # 숫자로 변환
+                    'seed': float(wallet_data['seed']),  # 숫자로 변환
+                    'btc_balance': float(wallet_data['btc_balance']),  # 숫자로 변환
+                    'krw_balance': float(wallet_data['krw_balance']),  # 숫자로 변환
+                    'last_updated': wallet_data['last_updated']
+                }
+            })
         
     except FileNotFoundError as e:
-        print(f"❌ 파일을 찾을 수 없습니다: {str(e)}")  # 디버깅용 로그
+        print(f"❌ 파일을 찾을 수 없습니다: {str(e)}")
         return jsonify({
             'success': False,
             'error': '지갑 정보를 찾을 수 없습니다.'
         }), 404
         
     except json.JSONDecodeError as e:
-        print(f"❌ JSON 디코딩 오류: {str(e)}")  # 디버깅용 로그
+        print(f"❌ JSON 디코딩 오류: {str(e)}")
         return jsonify({
             'success': False,
             'error': '지갑 데이터 형식이 올바르지 않습니다.'
         }), 500
         
+    except KeyError as e:
+        print(f"❌ 키 에러: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'필수 데이터가 누락되었습니다: {str(e)}'
+        }), 500
+        
+    except ValueError as e:
+        print(f"❌ 값 변환 오류: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'데이터 형식이 올바르지 않습니다: {str(e)}'
+        }), 500
+        
     except Exception as e:
-        print(f"❌ 예상치 못한 오류 발생: {str(e)}")  # 디버깅용 로그
+        print(f"❌ 예상치 못한 오류 발생: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
