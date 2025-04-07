@@ -289,13 +289,10 @@ def update_fcm_token():
 @app.route('/api/upbit_wallet')
 def get_upbit_wallet_info():
     try:
-        # 프로젝트 루트 디렉토리 경로 가져오기
-        root_dir = os.path.dirname(os.path.abspath(__file__))
-        wallet_path = os.path.join(root_dir, 'upbit_wallet.json')
-        
-        # upbit_wallet.json 파일 읽기
-        with open(wallet_path, 'r') as file:
+        # upbit_wallet.json 파일 읽기 (프로젝트 루트에서)
+        with open('upbit_wallet.json', 'r', encoding='utf-8') as file:
             wallet_data = json.loads(file.read())
+            print(f"✅ 지갑 데이터를 성공적으로 읽었습니다: {wallet_data}")  # 디버깅용 로그
             
         return jsonify({
             'success': True,
@@ -308,19 +305,22 @@ def get_upbit_wallet_info():
             }
         })
         
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        print(f"❌ 파일을 찾을 수 없습니다: {str(e)}")  # 디버깅용 로그
         return jsonify({
             'success': False,
             'error': '지갑 정보를 찾을 수 없습니다.'
         }), 404
         
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON 디코딩 오류: {str(e)}")  # 디버깅용 로그
         return jsonify({
             'success': False,
             'error': '지갑 데이터 형식이 올바르지 않습니다.'
         }), 500
         
     except Exception as e:
+        print(f"❌ 예상치 못한 오류 발생: {str(e)}")  # 디버깅용 로그
         return jsonify({
             'success': False,
             'error': str(e)
