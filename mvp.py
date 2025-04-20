@@ -23,8 +23,8 @@ if __name__ == '__main__':
             
             ai_trading()
             
-            print("\n⏰ 트레이딩 작업 완료! 1시간 후 다시 실행합니다...")
-            time.sleep(3600)  # 1시간(3600초) 대기
+            print("\n⏰ 트레이딩 작업 완료! 4시간 후 다시 실행합니다...")
+            time.sleep(14400)  # 4시간(14400초) 대기
         except KeyboardInterrupt:
             print("\n👋 프로그램을 종료합니다...")
             break
