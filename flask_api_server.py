@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import os
 import base64
@@ -49,6 +49,16 @@ def initialize_wallet_file():
 
 # 서버 시작 시 지갑 파일 초기화
 initialize_wallet_file()
+
+# 루트 URL 핸들러 추가
+@app.route('/')
+def home():
+    # 루트 디렉토리에 있는 index.html 파일을 반환
+    html_path = os.path.join(os.getcwd(), 'index.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    else:
+        return "API 서버가 실행 중입니다. index.html 파일이 없습니다."
 
 @app.route('/api/charts/<path:key>')
 def get_chart(key):
