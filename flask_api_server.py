@@ -53,12 +53,35 @@ initialize_wallet_file()
 # 루트 URL 핸들러 추가
 @app.route('/')
 def home():
-    # 루트 디렉토리에 있는 index.html 파일을 반환
     html_path = os.path.join(os.getcwd(), 'index.html')
     if os.path.exists(html_path):
         return send_file(html_path)
     else:
         return "API 서버가 실행 중입니다. index.html 파일이 없습니다."
+
+@app.route('/1')
+def page_1():
+    html_path = os.path.join(os.getcwd(), '1.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    else:
+        return "1.html 파일이 없습니다."
+
+@app.route('/2')
+def page_2():
+    html_path = os.path.join(os.getcwd(), '2.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    else:
+        return "2.html 파일이 없습니다."
+
+@app.route('/3')
+def page_3():
+    html_path = os.path.join(os.getcwd(), '3.html')
+    if os.path.exists(html_path):
+        return send_file(html_path)
+    else:
+        return "3.html 파일이 없습니다."
 
 @app.route('/api/charts/<path:key>')
 def get_chart(key):
